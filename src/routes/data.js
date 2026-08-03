@@ -96,6 +96,10 @@ router.post("/mailbox/create", RequireAppAuth, async (req, res, next) => {
 		return res.status(400).json({ error: "Invalid email" })
 	}
 
+	if (!name || typeof name !== "string") {
+		return res.status(400).json({ error: "Invalid name" })
+	}
+
 	const existing = await db.FindBy({ "mailboxes.email": email })
 
 	if (existing) {
