@@ -209,7 +209,6 @@ OAuth2 authentication should always be used over HTTPS.
 An example Traefik setup:
 
 ```yaml
----
 services:
   mailauth:
     image: ghcr.io/codeshelldev/mailauth:latest
