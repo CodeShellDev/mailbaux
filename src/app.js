@@ -19,7 +19,7 @@ const path = require("path")
 
 const app = express()
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8070
 
 app.use(config.PREFIX, express.static("public"))
 
@@ -35,7 +35,7 @@ app.use(
 		secret: process.env.SESSION_SECRET,
 		resave: false,
 		saveUninitialized: false,
-	})
+	}),
 )
 
 app.use(passport.initialize())
@@ -79,6 +79,3 @@ app.listen(PORT, () => {
 
 	logger.log(`Server running on http://localhost:${PORT}`)
 })
-
-
-
