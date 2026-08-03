@@ -15,4 +15,4 @@ USER node
 
 EXPOSE 8070
 
-CMD ["node", "index.js"]
+CMD ["node", "./src/app.js"]
