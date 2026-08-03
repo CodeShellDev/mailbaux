@@ -47,6 +47,7 @@ define("LOG_LEVEL", { type: "number", default: 1 })
 const HOST = define("HOST", { required: true })
 define("PREFIX", { default: "/" })
 define("SESSION_SECRET", { required: true })
+define("JWT_KEY_PATH", { default: "/app/secrets" })
 
 // App
 
