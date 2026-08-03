@@ -2,8 +2,10 @@
 .git
 .github
 .env
+examples
+screenshots
 docker-compose.yaml
-LICENSE
 *.md
 node_modules
 *.pem
+Dockerfile

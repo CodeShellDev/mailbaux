@@ -2,17 +2,20 @@ const jwt = require("jsonwebtoken")
 const fs = require("fs")
 const path = require("path")
 
+const config = require("./config")
+
 const logger = require("./logger")
 
 const { generateKeyPairSync } = require("crypto")
 
-const keyPath = path.join(__dirname, "../secrets/private_key.pem")
-
 let privateKey
 
 function CheckForKey() {
-	if (fs.existsSync(keyPath)) {
-		privateKey = fs.readFileSync(keyPath, "utf8")
+	const privateKeyPath = path.join(config.JWT_KEY_PATH, "private_key.pem")
+	const publicKeyPath = path.join(config.JWT_KEY_PATH, "public_key.pem")
+
+	if (fs.existsSync(privateKeyPath) && fs.existsSync(publicKeyPath)) {
+		privateKey = fs.readFileSync(privateKeyPath, "utf8")
 
 		logger.log("Loaded existing RSA private key")
 	} else {
@@ -29,12 +32,11 @@ function CheckForKey() {
 				},
 			})
 
-		fs.mkdirSync(path.dirname(keyPath), { recursive: true })
-		fs.writeFileSync(keyPath, genPrivKey)
-		fs.writeFileSync(
-			path.join(__dirname, "../secrets/public_key.pem"),
-			genPubKey
-		)
+		fs.mkdirSync(path.dirname(config.JWT_KEY_PATH), { recursive: true })
+
+		fs.writeFileSync(privateKeyPath, genPrivKey)
+		fs.writeFileSync(publicKeyPath, genPubKey)
+
 		privateKey = genPrivKey
 
 		logger.log("Generated new RSA key pair")

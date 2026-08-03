@@ -1,14 +1,20 @@
-FROM node:latest
+FROM node:alpine
 
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=80
+ENV PORT=8070
+
+COPY package*.json ./
+
+RUN npm ci --omit=dev && npm cache clean --force
 
 COPY . .
 
-RUN npm install
+RUN mkdir -p /app/data/secrets && chown -R node:node /app
 
-EXPOSE 80
+USER node
 
-CMD ["npm", "start", "-s"]
+EXPOSE 8070
+
+CMD ["node", "src/server.js"]

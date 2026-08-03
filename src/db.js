@@ -8,7 +8,9 @@ let mongoClient, mongoSession
 let redisClient
 
 async function Init() {
-	mongoClient = new MongoClient(config.DB_HOST)
+	mongoClient = new MongoClient(config.DB_URI)
+
+	await mongoClient.connect()
 
 	logger.db("Connected to MongoDB")
 
@@ -16,9 +18,9 @@ async function Init() {
 
 	logger.db("Started MongoDB Session")
 
-	redisClient = redis.createClient({ url: config.REDIS_HOST })
+	redisClient = redis.createClient({ url: config.REDIS_URI })
 
-	redisClient.connect()
+	await redisClient.connect()
 
 	logger.db("Connected to Redis")
 }
@@ -30,8 +32,8 @@ async function Close() {
 	await mongoClient.close()
 }
 
-async function Connect() {
-	return await mongoClient.db(config.DB_NAME)
+function Connect() {
+	return mongoClient.db(config.DB_NAME)
 }
 
 // Mongo
@@ -39,7 +41,7 @@ async function Connect() {
 async function InsertUser(user) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.insertOne(user)
 
@@ -49,7 +51,7 @@ async function InsertUser(user) {
 async function GetUserByID(id) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	return await collection.findOne({ id: id })
 }
@@ -57,7 +59,7 @@ async function GetUserByID(id) {
 async function DeleteUserByID(id) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.deleteOne({ id: id })
 
@@ -69,7 +71,7 @@ async function DeleteUserByID(id) {
 async function FindBy(query) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.findOne(query)
 
@@ -79,12 +81,12 @@ async function FindBy(query) {
 async function AddToArray(query, update) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.updateOne(
 		query,
 		{ $addToSet: update },
-		{ upsert: true }
+		{ upsert: true },
 	)
 
 	return result
@@ -93,7 +95,7 @@ async function AddToArray(query, update) {
 async function DeleteFromArrayBy(query, update) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.updateOne(query, { $pull: update })
 
@@ -103,12 +105,12 @@ async function DeleteFromArrayBy(query, update) {
 async function UpdateBy(query, update) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.updateOne(
 		query,
 		{ $set: update },
-		{ upsert: true }
+		{ upsert: true },
 	)
 
 	return result
@@ -116,31 +118,44 @@ async function UpdateBy(query, update) {
 
 // REDIS
 
-async function GetFromCache(key, hash = false) {
-	if (hash) {
-		return await redisClient.hGetAll(key)
-	} else {
-		return await redisClient.get(key)
+async function GetFromCache(key) {
+	const value = await redisClient.get(key)
+
+	if (value === null) {
+		return null
+	}
+
+	try {
+		return JSON.parse(value)
+	} catch {
+		return value
 	}
 }
 
-async function WriteToCache(key, value, hash = false) {
-	if (hash) {
-		await redisClient.hSet(key, value)
-	} else {
-		await redisClient.set(key, value)
+async function WriteToCache(key, value, ttl = 3600) {
+	if (typeof value !== "string") {
+		value = JSON.stringify(value)
 	}
 
-	await redisClient.expire(key, 3600)
+	await redisClient.set(key, value)
+	await redisClient.expire(key, ttl)
 }
 
-async function DeleteFromCache(key, hash = false) {
-	if (hash) {
-		await redisClient.hDel(key)
-	} else {
-		await redisClient.del(key)
-	}
+async function DeleteFromCache(key) {
+	await redisClient.del(key)
 }
+
+function GetMongoDB() {
+	return mongoClient
+}
+
+function GetRedis() {
+	return redisClient
+}
+
+exports.GetMongoDB = GetMongoDB
+
+exports.GetRedis = GetRedis
 
 exports.DeleteUserByID = DeleteUserByID
 exports.GetUserByID = GetUserByID

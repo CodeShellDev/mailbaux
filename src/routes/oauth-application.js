@@ -20,15 +20,23 @@ passport.use(
 			scope: config.APP_SCOPE,
 		},
 		(issuer, profile, done) => {
+			if (!profile?.id) {
+				return done(new Error("OIDC profile missing id"))
+			}
+
 			logger.debug("Profile: ", profile)
 
 			return done(null, profile)
-		}
-	)
+		},
+	),
 )
 
 passport.serializeUser((user, done) => {
-	done(null, user)
+	done(null, {
+		id: user.id,
+		displayName: user.displayName,
+		emails: user.emails,
+	})
 })
 
 passport.deserializeUser((obj, done) => {
@@ -37,8 +45,12 @@ passport.deserializeUser((obj, done) => {
 
 router.get("/", passport.authenticate("oidc"))
 
-router.get("/callback", passport.authenticate("oidc"), (req, res) => {
-	return res.redirect("/")
-})
+router.get(
+	"/callback",
+	passport.authenticate("oidc", { failureRedirect: "/" }),
+	(req, res) => {
+		return res.redirect("/")
+	},
+)
 
 module.exports = router

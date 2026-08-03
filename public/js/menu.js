@@ -38,34 +38,7 @@ class PopupMenu {
 		wrapper.querySelector("form").addEventListener("submit", async (e) => {
 			e.preventDefault()
 
-			const elements = Array.from(e.target.elements)
-
-			let submit = true
-
-			const data = {}
-
-			for (const [_k, element] of Object.entries(elements)) {
-				const name = element?.dataset?.name
-				const value = element?.dataset?.value
-
-				if (name && value) {
-					if (
-						element.type == "submit" &&
-						value === "cancel" &&
-						(name === "cancel" || element.name === "cancel") &&
-						value === e.submitter?.dataset?.value
-					) {
-						submit = false
-						return this.close()
-					}
-
-					data[name] = value
-				} else if (element.name) {
-					data[element.name] = element.value
-				}
-			}
-
-			if (!submit) return this.close()
+			const data = Object.fromEntries(new FormData(e.target).entries())
 
 			const response = await fetch(this.endpoint, {
 				method: "POST",
@@ -98,38 +71,34 @@ class PopupMenu {
 		return wrapper
 	}
 
-	renderField(data) {
-		let dataStr = ""
+	renderField({
+		label = null,
+		name = "",
+		type = "text",
+		value = "",
+		placeholder = "",
+		pattern = ".*",
+		required = false,
+		...custom
+	}) {
+		const dataAttributes = Object.entries(custom)
+			.map(([key, value]) => `data-${key}="${value}"`)
+			.join(" ")
 
-		const attributes = {
-			action: "default",
-			name: "",
-			label: "",
-			type: "text",
-			pattern: ".*",
-			placeholder: "",
-		}
-
-		for (const [key, value] of Object.entries(data)) {
-			if (Object.hasOwn(attributes, key)) {
-				attributes[key] = value
-			} else {
-				dataStr = `data-value="${value}" data-name="${key}"`
-			}
-		}
-
-		return `
+		let res = `
         <input 
-			type="${attributes.type}" 
-			name="${attributes.name}" 
-			id="${attributes.name}" 
-			value="${attributes.label}" 
-			placeholder="${attributes.placeholder}" 
-			pattern="${attributes.pattern}"
-			data-action="${attributes.action}"
-			${dataStr}
-		/>
-      	`
+            type="${type}" 
+            name="${name}" 
+            id="${name}" 
+            value="${value}" 
+            placeholder="${placeholder}" 
+            pattern="${pattern}" 
+            ${required ? "required" : ""}
+			${dataAttributes}
+        />
+    `
+
+		return res
 	}
 
 	open(overwrites = []) {
@@ -239,17 +208,31 @@ class Menu {
 		value = "",
 		placeholder = "",
 		pattern = ".*",
+		required = true,
+		...custom
 	}) {
+		const dataAttributes = Object.entries(custom)
+			.map(([key, value]) => `data-${key}="${value}"`)
+			.join(" ")
+
 		let res = `
-        <input type="${type}" name="${name}" id="${name}" value="${value}" placeholder="${placeholder}" pattern="${pattern}" />
-		<br />
-      	`
+        <input 
+            type="${type}" 
+            name="${name}" 
+            id="${name}" 
+            value="${value}" 
+            placeholder="${placeholder}" 
+            pattern="${pattern}" 
+            ${required ? "required" : ""}
+			${dataAttributes}
+        />
+    `
 
 		if (label) {
 			res = `
-			${label}
-			${res}
-			`
+            ${label}
+            ${res}
+        `
 		}
 
 		return res

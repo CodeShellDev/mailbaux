@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - docker-compose.yaml
+      - examples/**
       - .github/templates/README.template.md
 
 jobs:

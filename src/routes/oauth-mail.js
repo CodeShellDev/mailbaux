@@ -1,5 +1,6 @@
 const express = require("express")
 const router = express.Router()
+const crypto = require("crypto")
 
 const { DecodeToken, SignToken } = require("../token")
 
@@ -13,78 +14,53 @@ const qs = require("querystring")
 
 const axios = require("axios")
 
-async function TokenExchange(
-	endpoint,
-	code,
-	id,
-	secret,
-	grantType,
-	redirectURI
-) {
-	try {
-		const data = {
-			grant_type: "authorization_code",
-			code: code,
-			redirect_uri: redirectURI,
-			client_id: id,
-			client_secret: secret,
-		}
-
-		const formData = qs.stringify(data)
-
-		const response = await axios.post(endpoint, formData, {
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-			},
-		})
-
-		logger.debug(`Token Exchange:\n`, response.data)
-
-		return response.data
-	} catch (error) {
-		logger.err(`Error during Token Exchange:`, error)
+async function TokenExchange(endpoint, code, id, secret, redirectURI) {
+	const data = {
+		grant_type: "authorization_code",
+		code: code,
+		redirect_uri: redirectURI,
+		client_id: id,
+		client_secret: secret,
 	}
+
+	const formData = qs.stringify(data)
+
+	const response = await axios.post(endpoint, formData, {
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
+		},
+	})
+
+	logger.debug(`Token Exchange:\n`, response.data)
+
+	return response.data
 }
 
 async function GetUserInfo(endpoint, token) {
-	try {
-		const response = await axios.get(endpoint, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		})
+	const response = await axios.get(endpoint, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	})
 
-		logger.debug(`Userinfo:\n`, response.data)
+	logger.debug(`Userinfo:\n`, response.data)
 
-		return response.data
-	} catch (error) {
-		logger.err(`Error while getting Userinfo:`, error)
-	}
+	return response.data
 }
 
 async function IsOwnedByUser(id, email) {
-	let user = await db.GetUserByID(id)
+	if (!id || !email) return false
 
-	if (user) {
-		for (let i = 0; i < user.mailboxes.length; i++) {
-			const mailbox = user.mailboxes[i]
+	const user = await db.GetUserByID(id)
 
-			if (mailbox.email === email) {
-				return true
-			}
-		}
-	}
+	if (!user) return false
 
-	return false
+	return user.mailboxes.some((mailbox) => mailbox.email === email)
 }
 
 function GetBaseUrl(req, overwriteHost = null) {
 	const prot = req.protocol
-	let host = req.get("host")
-
-	if (overwriteHost) {
-		host = overwriteHost
-	}
+	const host = overwriteHost || req.get("host")
 
 	return `${prot}://${host}`
 }
@@ -94,173 +70,275 @@ function GetMatchingRedirectUri(req, redirectUris, host = null) {
 
 	const rootDomain = ParseUrl(baseUrl).domain
 
-	let candidates = []
-
-	for (let i = 0; i < redirectUris.length; i++) {
-		const uri = redirectUris[i]
-
-		const uriRoot = ParseUrl(uri).domain
-
-		if (uriRoot === rootDomain) {
-			candidates.push(uri)
-		}
-	}
+	let candidates = redirectUris.filter(
+		(uri) => ParseUrl(uri).domain === rootDomain,
+	)
 
 	if (candidates.length > 1) {
 		const subdomain = ParseUrl(baseUrl).subdomain
 
-		for (let i = 0; i < candidates.length; i++) {
-			const uri = candidates[i]
+		const match = candidates.find(
+			(uri) => ParseUrl(uri).subdomain === subdomain,
+		)
 
-			const uriSubdomain = ParseUrl(uri).subdomain
-
-			if (uriSubdomain === subdomain) {
-				candidates = [uri]
-
-				break
-			}
-		}
+		if (match) candidates = [match]
 	}
 
 	return candidates[0]
 }
 
 router.get("/authorize", async (req, res, next) => {
-	const originalUrl = req.get("Referer")
+	try {
+		if (!req.query.state) {
+			return res.status(400).send("Missing state")
+		}
 
-	const originalHost = new URL(originalUrl).host
+		const queryString = Object.entries(req.query)
+			.map(
+				([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`,
+			)
+			.join("&")
 
-	const queryString = Object.entries(req.query)
-		.map(
-			([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`
-		)
-		.join("&")
+		// mailcow starts this flow cross-domain (its own origin -> mailauth -> authentik)
+		// We still need to know which mailcow host to route the callback back to.
+		// The caller must also be a known configured host, matched against MAIL_REDIRECT_URIS
+		const referer = req.get("Referer")
+		let originalHost = req.get("host")
 
-	if (ParseUrl(GetBaseUrl(req)).domain !== ParseUrl(originalUrl).domain) {
-		const newUrl = `${GetMatchingRedirectUri(
+		if (referer) {
+			try {
+				originalHost = new URL(referer).host
+			} catch {
+				// malformed Referer, fall back to req.get("host")
+			}
+		}
+
+		const matchedUri = GetMatchingRedirectUri(
 			req,
 			config.MAIL_REDIRECT_URIS,
-			originalHost
-		).replace("callback", "authorize")}?${queryString}`
+			originalHost,
+		)
 
-		await db.WriteToCache(`state:${req.query.state}`, originalHost)
+		// state is attacker-influenced (comes from mailcow's query string),
+		// so it must never be used directly as a cache key.
+		// Generate our own random nonce instead
+		const nonce = crypto.randomBytes(24).toString("hex")
+
+		await db.WriteToCache(`state:${nonce}`, {
+			host: originalHost,
+			origState: req.query.state,
+		})
+
+		if (
+			matchedUri &&
+			ParseUrl(GetBaseUrl(req)).domain !== ParseUrl(matchedUri).domain
+		) {
+			const authorizeUrl = matchedUri.replace("callback", "authorize")
+
+			const forwardedQuery = new URLSearchParams(req.query)
+			forwardedQuery.set("state", nonce)
+
+			return res.redirect(`${authorizeUrl}?${forwardedQuery.toString()}`)
+		}
+
+		const forwardedQuery = new URLSearchParams(req.query)
+		forwardedQuery.set("state", nonce)
+
+		const newUrl = `${config.MAIL_AUTHORIZATION_ENDPOINT}?${forwardedQuery.toString()}`
 
 		return res.redirect(newUrl)
+	} catch (err) {
+		logger.err("Error in /authorize:", err)
+		return res.status(500).send("Authorization failed")
 	}
-
-	const newUrl = `${config.MAIL_AUTHORIZATION_ENDPOINT}?${queryString}`
-
-	await db.WriteToCache(`state:${req.query.state}`, req.get("host"))
-
-	return res.redirect(newUrl)
 })
 
 router.get("/callback", async (req, res, next) => {
-	const originalHost = await db.GetFromCache(`state:${req.query.state}`)
+	try {
+		const nonce = req.query.state
 
-	logger.debug(originalHost)
+		if (!nonce) {
+			return res.status(400).send("Missing state")
+		}
 
-	const tokenRes = await TokenExchange(
-		config.MAIL_TOKEN_ENDPOINT,
-		req.query.code,
-		config.MAIL_CLIENT_ID,
-		config.MAIL_CLIENT_SECRET,
-		"authorization_code",
-		GetMatchingRedirectUri(req, config.MAIL_REDIRECT_URIS, originalHost)
-	)
+		const stateData = await db.GetFromCache(`state:${nonce}`)
 
-	await db.WriteToCache(`code:${req.query.code}`, tokenRes, true)
+		if (!stateData?.host) {
+			return res.status(400).send("Invalid or expired state")
+		}
 
-	const idToken = DecodeToken(tokenRes.id_token)
+		await db.DeleteFromCache(`state:${nonce}`)
 
-	await db.WriteToCache(`access:${tokenRes.access_token}`, idToken.sub)
+		const redirectUri = GetMatchingRedirectUri(
+			req,
+			config.MAIL_REDIRECT_URIS,
+			stateData.host,
+		)
 
-	req.session.mail = {
-		code: req.query.code,
-		state: req.query.state,
-		id: idToken.sub,
+		if (!redirectUri) {
+			return res.status(400).send("No matching redirect URI")
+		}
+
+		const tokenRes = await TokenExchange(
+			config.MAIL_TOKEN_ENDPOINT,
+			req.query.code,
+			config.MAIL_CLIENT_ID,
+			config.MAIL_CLIENT_SECRET,
+			redirectUri,
+		)
+
+		if (!tokenRes?.id_token || !tokenRes?.access_token) {
+			return res.status(502).send("Token exchange failed")
+		}
+
+		const codeHandle = crypto.randomBytes(24).toString("hex")
+
+		await db.WriteToCache(`code:${codeHandle}`, tokenRes)
+
+		const idToken = DecodeToken(tokenRes.id_token)
+
+		await db.WriteToCache(`access:${tokenRes.access_token}`, idToken.sub)
+
+		req.session.mail = {
+			code: codeHandle,
+			state: stateData.origState,
+			id: idToken.sub,
+		}
+
+		return res.redirect("/select")
+	} catch (err) {
+		logger.err("Error in /callback:", err)
+		return res.status(502).send("Callback failed")
 	}
-
-	return res.redirect("/select")
 })
 
 router.get("/mailbox", async (req, res, next) => {
-	const mailData = req.session.mail
+	try {
+		const mailData = req.session.mail
 
-	const originalHost = await db.GetFromCache(`state:${mailData.state}`)
+		if (!mailData?.code) {
+			return res.status(400).send("No pending mail session")
+		}
 
-	req.session.mail = {}
+		const originalHost = await db.GetFromCache(`state:${mailData.state}`)
 
-	const tokenRes = await db.GetFromCache(`code:${mailData.code}`, true)
+		const tokenRes = await db.GetFromCache(`code:${mailData.code}`)
 
-	const idToken = DecodeToken(tokenRes.id_token)
+		if (!tokenRes?.id_token) {
+			return res.status(400).send("Session expired, please restart")
+		}
 
-	await db.WriteToCache(`id:${idToken.sub}`, mailData.selected_mailbox)
+		const idToken = DecodeToken(tokenRes.id_token)
 
-	return res.redirect(
-		`${GetMatchingRedirectUri(
+		await db.WriteToCache(`id:${idToken.sub}`, mailData.selected_mailbox)
+
+		req.session.mail = {}
+
+		const redirectUri = GetMatchingRedirectUri(
 			req,
 			config.MAIL_CALLBACK_URIS,
-			originalHost
-		)}?code=${mailData.code}&state=${mailData.state}`
-	)
+			originalHost,
+		)
+
+		if (!redirectUri) {
+			return res.status(400).send("No matching callback URI")
+		}
+
+		return res.redirect(
+			`${redirectUri}?code=${mailData.code}&state=${mailData.state}`,
+		)
+	} catch (err) {
+		logger.err("Error in /mailbox:", err)
+		return res.status(500).send("Mailbox selection failed")
+	}
 })
 
 router.post("/token", async (req, res, next) => {
-	const tokenRes = await db.GetFromCache(`code:${req.body.code}`, true)
+	try {
+		if (!req.body.code) {
+			return res.status(400).json({ error: "invalid_request" })
+		}
 
-	await db.DeleteFromCache(`code:${req.body.code}`)
+		const tokenRes = await db.GetFromCache(`code:${req.body.code}`)
 
-	const idToken = tokenRes.id_token
-	const accessToken = tokenRes.access_token
+		if (!tokenRes?.id_token) {
+			return res.status(400).json({ error: "invalid_grant" })
+		}
 
-	const decoded = DecodeToken(idToken)
+		await db.DeleteFromCache(`code:${req.body.code}`)
 
-	let newPayload = decoded
+		const idToken = tokenRes.id_token
+		const accessToken = tokenRes.access_token
 
-	const id = await db.GetFromCache(`access:${accessToken}`)
+		const decoded = DecodeToken(idToken)
 
-	const mailbox = await db.GetFromCache(`id:${id}`)
+		let newPayload = decoded
 
-	if (await IsOwnedByUser(id, mailbox)) {
+		const id = await db.GetFromCache(`access:${accessToken}`)
+		const mailbox = id ? await db.GetFromCache(`id:${id}`) : null
+
+		if (!(await IsOwnedByUser(id, mailbox))) {
+			return res.status(403).json({ error: "mailbox_not_selected" })
+		}
+
 		newPayload.email = mailbox
+		newPayload.iss = config.MAIL_ISSUER
+
+		const newIdToken = SignToken(newPayload)
+
+		// Keep access-token -> id mapping alive only as long as the token itself is valid
+		await db.WriteToCache(`access:${accessToken}`, id, 300)
+
+		const responseBody = {
+			access_token: accessToken,
+			token_type: "Bearer",
+			expires_in: 300,
+			id_token: newIdToken,
+			scope: tokenRes.scope,
+		}
+
+		return res.status(200).json(responseBody)
+	} catch (err) {
+		logger.err("Error in /token:", err)
+		return res.status(500).json({ error: "server_error" })
 	}
-
-	newPayload.iss = config.MAIL_ISSUER
-
-	const newIdToken = SignToken(newPayload)
-
-	const responseBody = {
-		access_token: accessToken,
-		token_type: "Bearer",
-		expires_in: 300,
-		id_token: newIdToken,
-		scope: tokenRes.scope,
-	}
-
-	return res.status(200).json(responseBody)
 })
 
 router.get("/userinfo", async (req, res, next) => {
-	const accessToken = req.headers["authorization"].split("Bearer ")[1]
+	try {
+		const authHeader = req.headers["authorization"]
 
-	let userinfo = await GetUserInfo(config.MAIL_USERINFO_ENDPOINT, accessToken)
-
-	if (userinfo) {
-		const id = await db.GetFromCache(`access:${accessToken}`)
-
-		const mailbox = await db.GetFromCache(`id:${id}`)
-
-		if (await IsOwnedByUser(id, mailbox)) {
-			userinfo.email = mailbox
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res.status(401).json({ error: "missing_token" })
 		}
+
+		const accessToken = authHeader.slice("Bearer ".length)
+
+		const userinfo = await GetUserInfo(
+			config.MAIL_USERINFO_ENDPOINT,
+			accessToken,
+		)
+
+		if (!userinfo) {
+			return res.status(502).json({ error: "userinfo_unavailable" })
+		}
+
+		const id = await db.GetFromCache(`access:${accessToken}`)
+		const mailbox = id ? await db.GetFromCache(`id:${id}`) : null
+
+		if (!(await IsOwnedByUser(id, mailbox))) {
+			return res.status(403).json({ error: "mailbox_not_selected" })
+		}
+
+		userinfo.email = mailbox
 
 		await db.DeleteFromCache(`access:${accessToken}`)
 		await db.DeleteFromCache(`id:${id}`)
 
 		return res.status(200).json(userinfo)
-	} else {
-		throw Error("Userinfo undefined")
+	} catch (err) {
+		logger.err("Error in /userinfo:", err)
+		return res.status(502).json({ error: "server_error" })
 	}
 })
 
