@@ -96,15 +96,7 @@ class PopupMenu {
             ${required ? "required" : ""}
 			${dataAttributes}
         />
-        <br />
     `
-
-		if (label) {
-			res = `
-            ${label}
-            ${res}
-        `
-		}
 
 		return res
 	}
@@ -234,7 +226,6 @@ class Menu {
             ${required ? "required" : ""}
 			${dataAttributes}
         />
-        <br />
     `
 
 		if (label) {
