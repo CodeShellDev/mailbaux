@@ -79,7 +79,12 @@ class PopupMenu {
 		placeholder = "",
 		pattern = ".*",
 		required = true,
+		...custom
 	}) {
+		const dataAttributes = Object.entries(custom)
+			.map(([key, value]) => `data-${key}="${value}"`)
+			.join(" ")
+
 		let res = `
         <input 
             type="${type}" 
@@ -89,6 +94,7 @@ class PopupMenu {
             placeholder="${placeholder}" 
             pattern="${pattern}" 
             ${required ? "required" : ""}
+			${dataAttributes}
         />
         <br />
     `
@@ -211,7 +217,12 @@ class Menu {
 		placeholder = "",
 		pattern = ".*",
 		required = true,
+		...custom
 	}) {
+		const dataAttributes = Object.entries(custom)
+			.map(([key, value]) => `data-${key}="${value}"`)
+			.join(" ")
+
 		let res = `
         <input 
             type="${type}" 
@@ -221,6 +232,7 @@ class Menu {
             placeholder="${placeholder}" 
             pattern="${pattern}" 
             ${required ? "required" : ""}
+			${dataAttributes}
         />
         <br />
     `
