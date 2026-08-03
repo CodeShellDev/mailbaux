@@ -9,7 +9,7 @@ async function start() {
 	try {
 		await db.Init()
 
-		CreateApp()
+		const app = CreateApp()
 
 		await docker()
 
