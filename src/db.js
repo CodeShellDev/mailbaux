@@ -8,7 +8,7 @@ let mongoClient, mongoSession
 let redisClient
 
 async function Init() {
-	mongoClient = new MongoClient(config.DB_HOST)
+	mongoClient = new MongoClient(config.DB_URI)
 
 	logger.db("Connected to MongoDB")
 
@@ -16,7 +16,7 @@ async function Init() {
 
 	logger.db("Started MongoDB Session")
 
-	redisClient = redis.createClient({ url: config.REDIS_HOST })
+	redisClient = redis.createClient({ url: config.REDIS_URI })
 
 	redisClient.connect()
 
@@ -84,7 +84,7 @@ async function AddToArray(query, update) {
 	const result = await collection.updateOne(
 		query,
 		{ $addToSet: update },
-		{ upsert: true }
+		{ upsert: true },
 	)
 
 	return result
@@ -108,7 +108,7 @@ async function UpdateBy(query, update) {
 	const result = await collection.updateOne(
 		query,
 		{ $set: update },
-		{ upsert: true }
+		{ upsert: true },
 	)
 
 	return result
