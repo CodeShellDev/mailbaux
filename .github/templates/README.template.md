@@ -22,15 +22,7 @@ Get the latest version of the `docker-compose.yaml` file:
 
 ## Setup
 
-Mailauth requires two separate OAuth2 clients because it is involved in two different OAuth2 flows.
-
-The first OAuth client is created for the mail server in your IdP.
-It allows the mail server to authenticate users through Mailauth.
-During this flow, Mailauth authenticates the user with your IdP, allows the user to select a mailbox, modifies the `email` claim, and returns the result to the mail server.
-
-The second client is used by Mailauth itself. This allows users to log into the Mailauth interface through your IdP, where they can manage their configured mailboxes.
-
-Mailauth uses two OAuth2 flows:
+Mailauth requires two separate OAuth2 clients because it is involved in two different OAuth2 flows:
 
 1. **Mail server authentication**
    - Your mail server redirects the user to Mailauth
