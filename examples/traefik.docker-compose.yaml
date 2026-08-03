@@ -1,4 +1,3 @@
----
 services:
   mailauth:
     image: ghcr.io/codeshelldev/mailauth:latest
