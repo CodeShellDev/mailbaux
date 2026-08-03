@@ -10,9 +10,9 @@ Supported mail servers include solutions such as [mailcow](https://github.com/ma
 
 ![mailauth-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
 
-# Getting Started
+## Getting Started
 
-## Docker Compose
+### Docker Compose
 
 Get the latest version of the `docker-compose.yaml` file:
 
@@ -66,7 +66,7 @@ volumes:
 
 ```
 
-## Setup
+### Setup
 
 Mailauth requires two separate OAuth2 clients because it is involved in two different OAuth2 flows:
 
