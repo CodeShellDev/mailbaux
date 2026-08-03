@@ -78,7 +78,7 @@ class PopupMenu {
 		value = "",
 		placeholder = "",
 		pattern = ".*",
-		required = true,
+		required = false,
 		...custom
 	}) {
 		const dataAttributes = Object.entries(custom)
