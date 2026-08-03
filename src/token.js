@@ -32,9 +32,11 @@ function CheckForKey() {
 				},
 			})
 
-		fs.mkdirSync(path.dirname(keyPath), { recursive: true })
-		fs.writeFileSync(keyPath, genPrivKey)
+		fs.mkdirSync(path.dirname(config.JWT_KEY_PATH), { recursive: true })
+
+		fs.writeFileSync(privateKeyPath, genPrivKey)
 		fs.writeFileSync(publicKeyPath, genPubKey)
+
 		privateKey = genPrivKey
 
 		logger.log("Generated new RSA key pair")
