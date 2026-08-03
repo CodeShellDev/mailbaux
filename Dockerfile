@@ -5,10 +5,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8070
 
+COPY package*.json ./
+
+RUN npm ci --omit=dev && npm cache clean --force
+
 COPY . .
 
-RUN npm install
+USER node
 
 EXPOSE 8070
 
-CMD ["npm", "start", "-s"]
+CMD ["node", "index.js"]
