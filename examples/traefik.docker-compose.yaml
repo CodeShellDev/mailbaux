@@ -10,7 +10,7 @@ services:
       - traefik.http.routers.mailauth-secure.tls=true
       - traefik.http.routers.mailauth-secure.tls.certresolver=resolver
       - traefik.http.routers.mailauth-secure.service=mailauth-svc
-      - traefik.http.services.mailauth-svc.loadbalancer.server.port=80
+      - traefik.http.services.mailauth-svc.loadbalancer.server.port=8070
       - traefik.docker.network=proxy
     environment:
       DB_HOST: ${DB_HOST:-mongo:27017}
