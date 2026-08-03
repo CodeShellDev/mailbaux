@@ -48,7 +48,7 @@ const HOST = define("HOST", { required: true })
 define("PREFIX", { default: "/" })
 define("SESSION_SECRET", { required: true })
 
-const JWT_KEY_PATH = "/app/data/secrets"
+config.JWT_KEY_PATH = "/app/data/secrets"
 
 // App
 
