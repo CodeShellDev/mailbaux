@@ -86,7 +86,7 @@ MAIL_TOKEN_ENDPOINT=
 MAIL_USERINFO_ENDPOINT=
 
 MAIL_REDIRECT_URIS=https://mailauth.domain.com/oauth/mail/callback,https://mailauth.yourdomain.com/oauth/mail/callback
-MAIL_CALLBACK_URIS=https://mail.domain.com,https://mail.yourdomain.com # This is your mailservers oauth callback url
+MAIL_CALLBACK_URIS=https://mail.domain.com,https://mail.yourdomain.com # This is your mailserver's oauth callback url
 
 # App
 
@@ -107,9 +107,23 @@ REDIS_PASSWORD=SECURE_REDIS_PW
 
 # General
 
-SESSION_SECRET=SECURE_KEY # Gen with openssl
+SESSION_SECRET=SECURE_KEY # Generate with openssl
 
 HOST=https://mailauth.domain.com
+```
+
+#### Defaults
+
+```dotenv
+DB_USER=admin
+DB_NAME=mailauth
+
+DB_HOST=mongo:27017
+REDIS_HOST=redis:6379
+
+APP_REDIRECT_PATH=/oauth/app/callback
+
+PREFIX=/
 ```
 
 ### OAuth Setup
