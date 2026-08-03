@@ -9,7 +9,7 @@ async function start() {
 	try {
 		await db.Init()
 
-		CreateApp(redisClient)
+		CreateApp()
 
 		await docker()
 
