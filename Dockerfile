@@ -3,12 +3,12 @@ FROM node:latest
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=80
+ENV PORT=8070
 
 COPY . .
 
 RUN npm install
 
-EXPOSE 80
+EXPOSE 8070
 
 CMD ["npm", "start", "-s"]
