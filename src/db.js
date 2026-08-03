@@ -32,8 +32,8 @@ async function Close() {
 	await mongoClient.close()
 }
 
-async function Connect() {
-	return await mongoClient.db(config.DB_NAME)
+function Connect() {
+	return mongoClient.db(config.DB_NAME)
 }
 
 // Mongo
@@ -41,7 +41,7 @@ async function Connect() {
 async function InsertUser(user) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.insertOne(user)
 
@@ -51,7 +51,7 @@ async function InsertUser(user) {
 async function GetUserByID(id) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	return await collection.findOne({ id: id })
 }
@@ -59,7 +59,7 @@ async function GetUserByID(id) {
 async function DeleteUserByID(id) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.deleteOne({ id: id })
 
@@ -71,7 +71,7 @@ async function DeleteUserByID(id) {
 async function FindBy(query) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.findOne(query)
 
@@ -81,7 +81,7 @@ async function FindBy(query) {
 async function AddToArray(query, update) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.updateOne(
 		query,
@@ -95,7 +95,7 @@ async function AddToArray(query, update) {
 async function DeleteFromArrayBy(query, update) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.updateOne(query, { $pull: update })
 
@@ -105,7 +105,7 @@ async function DeleteFromArrayBy(query, update) {
 async function UpdateBy(query, update) {
 	const db = await Connect()
 
-	const collection = await db.collection("users")
+	const collection = db.collection("users")
 
 	const result = await collection.updateOne(
 		query,

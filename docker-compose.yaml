@@ -12,13 +12,13 @@ services:
     env_file:
       - .env
     depends_on:
-      - mongodb
+      - mongo
       - redis
     restart: unless-stopped
     networks:
       - mailauth
 
-  mongodb:
+  mongo:
     image: mongo:7
     container_name: mailauth-db
     environment:

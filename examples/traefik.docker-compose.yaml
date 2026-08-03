@@ -19,6 +19,9 @@ services:
       REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
+    depends_on:
+      - mongo
+      - redis
     restart: unless-stopped
     networks:
       mailauth:
@@ -26,7 +29,7 @@ services:
           - mailauth
       proxy:
 
-  mongodb:
+  mongo:
     image: mongo:7
     container_name: mailauth-db
     environment:
