@@ -145,6 +145,18 @@ async function DeleteFromCache(key) {
 	await redisClient.del(key)
 }
 
+function GetMongoDB() {
+	return mongoClient
+}
+
+function GetRedis() {
+	return redisClient
+}
+
+exports.GetMongoDB = GetMongoDB
+
+exports.GetRedis = GetRedis
+
 exports.DeleteUserByID = DeleteUserByID
 exports.GetUserByID = GetUserByID
 exports.InsertUser = InsertUser

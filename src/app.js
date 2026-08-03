@@ -1,91 +1,82 @@
 const express = require("express")
 const session = require("express-session")
-
 const passport = require("passport")
+const { RedisStore } = require("connect-redis")
+
+const { GetRedis } = require("./db")
 
 const logger = require("./logger")
-const db = require("./db")
 const config = require("./config")
-const docker = require("./docker")
 
 const routes = require("./routes/routes")
 const dataRoutes = require("./routes/data")
 const oauthMailRoutes = require("./routes/oauth-mail")
 const oauthApplicationRoutes = require("./routes/oauth-application")
 
-const rootRouter = express.Router()
+function CreateApp() {
+	const app = express()
+	const rootRouter = express.Router()
 
-const path = require("path")
+	app.use(config.PREFIX, express.static("public"))
 
-const app = express()
+	app.use(express.urlencoded({ extended: true }))
+	app.use(express.json())
 
-const PORT = process.env.PORT || 8070
+	app.set("view engine", "ejs")
 
-app.use(config.PREFIX, express.static("public"))
+	app.enable("trust proxy")
 
-app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
+	app.use(
+		session({
+			store: new RedisStore({
+				client: GetRedis(),
+			}),
+			secret: process.env.SESSION_SECRET,
+			resave: false,
+			saveUninitialized: false,
+			cookie: {
+				secure: true,
+				httpOnly: true,
+				maxAge: 1000 * 60 * 60 * 24,
+			},
+		}),
+	)
 
-app.set("view engine", "ejs")
+	app.use(passport.initialize())
+	app.use(passport.session())
 
-app.enable("trust proxy")
+	app.use((req, res, next) => {
+		logger.log(`New ${req.method} Request from ${req.ip} [${req.path}]`)
+		next()
+	})
 
-app.use(
-	session({
-		secret: process.env.SESSION_SECRET,
-		resave: false,
-		saveUninitialized: false,
-	}),
-)
+	rootRouter.use("/", routes)
+	rootRouter.use("/data", dataRoutes)
+	rootRouter.use("/oauth/mail", oauthMailRoutes)
+	rootRouter.use("/oauth/app", oauthApplicationRoutes)
 
-app.use(passport.initialize())
-app.use(passport.session())
+	app.use((req, res, next) => {
+		const origRedirect = res.redirect.bind(res)
+		const prefix = config.PREFIX || ""
 
-app.use((req, res, next) => {
-	logger.log(`New ${req.method} Request from ${req.ip} [${req.path}]`)
+		res.redirect = function (...args) {
+			const target = args.pop()
 
-	next()
-})
+			if (typeof target === "string" && target.startsWith("/")) {
+				args.push(prefix + target)
+			} else {
+				args.push(target)
+			}
 
-rootRouter.use("/", routes)
-rootRouter.use("/data", dataRoutes)
-rootRouter.use("/oauth/mail", oauthMailRoutes)
-rootRouter.use("/oauth/app", oauthApplicationRoutes)
-
-app.use((req, res, next) => {
-	const origRedirect = res.redirect.bind(res)
-	const prefix = config.PREFIX || ""
-
-	res.redirect = function redirectOverride(...args) {
-		let target = args.pop()
-
-		if (typeof target === "string" && target.startsWith("/")) {
-			args.push(prefix + target)
-		} else {
-			args.push(target)
+			return origRedirect(...args)
 		}
 
-		return origRedirect(...args)
-	}
+		next()
+	})
 
-	next()
-})
+	app.use(config.PREFIX, rootRouter)
 
-app.use(config.PREFIX, rootRouter)
-
-async function start() {
-	try {
-		await db.Init()
-
-		await docker()
-
-		app.listen(PORT, () => {
-			logger.log(`Server running on http://localhost:${PORT}`)
-		})
-	} catch (err) {
-		console.error(err)
-		process.exit(1)
-	}
+	return app
 }
 
-start()
+module.exports = CreateApp
