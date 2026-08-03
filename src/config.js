@@ -1,130 +1,94 @@
 const logger = require("./logger")
 
-function HandleVariable(data, expectedType) {
-	const variable = data.value
-	const varName = data.name
+const config = {}
 
-	if (variable == null || variable == undefined || variable === "") {
-		logger.env(`${varName} is not set`)
-	} else if (typeof variable != expectedType) {
-		logger.env(
-			`${varName} is of type ${typeof variable}, expected ${expectedType}`
-		)
+function define(
+	name,
+	{ type = "string", default: def, required = false } = {},
+) {
+	const raw = process.env[name]
+	let value
+
+	if (raw === undefined || raw === "") {
+		if (def !== undefined) {
+			value = typeof def === "function" ? def() : def
+		} else if (required) {
+			logger.env(`${name} is required but not set`)
+			process.exit(1)
+		}
+	} else if (type === "number") {
+		value = Number(raw)
+
+		if (Number.isNaN(value)) {
+			logger.env(`${name} must be a number, got "${raw}"`)
+			process.exit(1)
+		}
+	} else if (type === "array") {
+		value = raw
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean)
 	} else {
-		logger.debug(`${varName} = ${variable}`)
+		value = raw
 	}
 
-	exports[varName] = variable
-	return variable
+	if (value === undefined) {
+		logger.env(`${name} is not set`)
+	} else {
+		logger.debug(`${name} = ${value}`)
+	}
+
+	config[name] = value
+	return value
 }
 
-HandleVariable(
-	{ name: "LOG_LEVEL", value: parseInt(process.env.LOG_LEVEL) || 1 },
-	"number"
-)
+define("LOG_LEVEL", { type: "number", default: 1 })
 
-const HOST = HandleVariable({ name: "HOST", value: process.env.HOST }, "string")
+const HOST = define("HOST", { required: true })
+define("PREFIX", { default: "/" })
+define("SESSION_SECRET", { required: true })
 
-HandleVariable({ name: "PREFIX", value: process.env.PREFIX || "/" }, "string")
+// App
 
-HandleVariable(
-	{ name: "SESSION_SECRET", value: process.env.SESSION_SECRET },
-	"string"
-)
+define("APP_ISSUER", { required: true })
+define("APP_AUTHORIZATION_ENDPOINT", { required: true })
+define("APP_TOKEN_ENDPOINT", { required: true })
+define("APP_USERINFO_ENDPOINT", { required: true })
+define("APP_REDIRECT_PATH", { default: "/oauth/app/callback" })
+define("APP_CLIENT_ID", { required: true })
+define("APP_CLIENT_SECRET", { required: true })
+define("APP_SCOPE", { default: "openid profile email" })
 
-HandleVariable({ name: "DB_HOST", value: process.env.DB_HOST }, "string")
+// Mail
 
-HandleVariable({ name: "REDIS_HOST", value: process.env.REDIS_HOST }, "string")
+define("MAIL_ISSUER", { default: HOST })
+define("MAIL_AUTHORIZATION_ENDPOINT", { required: true })
+define("MAIL_TOKEN_ENDPOINT", { required: true })
+define("MAIL_USERINFO_ENDPOINT", { required: true })
+define("MAIL_REDIRECT_URIS", {
+	type: "array",
+	default: () => [`${HOST}/oauth/mail/callback`],
+})
+define("MAIL_CALLBACK_URIS", { type: "array", required: true })
+define("MAIL_CLIENT_ID", { required: true })
+define("MAIL_CLIENT_SECRET", { required: true })
 
-HandleVariable(
-	{ name: "DB_NAME", value: process.env.DB_NAME || "mailauth" },
-	"string"
-)
+// DB
 
-// |-----------------------------------------------------------------------------------------------------------| \\
+define("DB_HOST", { required: true })
+define("DB_NAME", { default: "mailauth" })
+define("DB_USER", { required: true })
+define("DB_PASSWORD", { required: true })
 
-HandleVariable({ name: "APP_ISSUER", value: process.env.APP_ISSUER }, "string")
-HandleVariable(
-	{
-		name: "APP_AUTHORIZATION_ENDPOINT",
-		value: process.env.APP_AUTHORIZATION_ENDPOINT,
-	},
-	"string"
-)
-HandleVariable(
-	{ name: "APP_TOKEN_ENDPOINT", value: process.env.APP_TOKEN_ENDPOINT },
-	"string"
-)
-HandleVariable(
-	{ name: "APP_USERINFO_ENDPOINT", value: process.env.APP_USERINFO_ENDPOINT },
-	"string"
-)
-HandleVariable(
-	{
-		name: "APP_REDIRECT_PATH",
-		value: process.env.APP_REDIRECT_PATH || `/oauth/app/callback`,
-	},
-	"string"
-)
+config.DB_URI = `mongodb://${encodeURIComponent(config.DB_USER)}:${encodeURIComponent(
+	config.DB_PASSWORD,
+)}@${config.DB_HOST}/${config.DB_NAME}?authSource=admin`
 
-HandleVariable(
-	{ name: "APP_CLIENT_ID", value: process.env.APP_CLIENT_ID },
-	"string"
-)
-HandleVariable(
-	{ name: "APP_CLIENT_SECRET", value: process.env.APP_CLIENT_SECRET },
-	"string"
-)
+// Redis
 
-HandleVariable(
-	{ name: "APP_SCOPE", value: process.env.APP_SCOPE || "openid profile email" },
-	"string"
-)
+define("REDIS_HOST", { required: true })
+define("REDIS_PASSWORD", { required: true })
 
-// |-----------------------------------------------------------------------------------------------------------| \\
+config.REDIS_URI = `redis://default:${encodeURIComponent(config.REDIS_PASSWORD)}@${config.REDIS_HOST}`
 
-HandleVariable(
-	{ name: "MAIL_ISSUER", value: process.env.MAIL_ISSUER || HOST },
-	"string"
-)
-HandleVariable(
-	{
-		name: "MAIL_AUTHORIZATION_ENDPOINT",
-		value: process.env.MAIL_AUTHORIZATION_ENDPOINT,
-	},
-	"string"
-)
-HandleVariable(
-	{ name: "MAIL_TOKEN_ENDPOINT", value: process.env.MAIL_TOKEN_ENDPOINT },
-	"string"
-)
-HandleVariable(
-	{ name: "MAIL_USERINFO_ENDPOINT", value: process.env.MAIL_USERINFO_ENDPOINT },
-	"string"
-)
-HandleVariable(
-	{
-		name: "MAIL_REDIRECT_URIS",
-		value: process.env.MAIL_REDIRECT_URIS.split(",") || [
-			`${HOST}/oauth/mail/callback`,
-		],
-	},
-	"object"
-)
-
-HandleVariable(
-	{
-		name: "MAIL_CALLBACK_URIS",
-		value: process.env.MAIL_CALLBACK_URIS.split(","),
-	},
-	"object"
-)
-
-HandleVariable(
-	{ name: "MAIL_CLIENT_ID", value: process.env.MAIL_CLIENT_ID },
-	"string"
-)
-HandleVariable(
-	{ name: "MAIL_CLIENT_SECRET", value: process.env.MAIL_CLIENT_SECRET },
-	"string"
-)
+module.exports = config
