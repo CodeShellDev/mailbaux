@@ -38,34 +38,7 @@ class PopupMenu {
 		wrapper.querySelector("form").addEventListener("submit", async (e) => {
 			e.preventDefault()
 
-			const elements = Array.from(e.target.elements)
-
-			let submit = true
-
-			const data = {}
-
-			for (const [_k, element] of Object.entries(elements)) {
-				const name = element?.dataset?.name
-				const value = element?.dataset?.value
-
-				if (name && value) {
-					if (
-						element.type == "submit" &&
-						value === "cancel" &&
-						(name === "cancel" || element.name === "cancel") &&
-						value === e.submitter?.dataset?.value
-					) {
-						submit = false
-						return this.close()
-					}
-
-					data[name] = value
-				} else if (element.name) {
-					data[element.name] = element.value
-				}
-			}
-
-			if (!submit) return this.close()
+			const data = Object.fromEntries(new FormData(e.target).entries())
 
 			const response = await fetch(this.endpoint, {
 				method: "POST",
@@ -108,15 +81,23 @@ class PopupMenu {
 		required = true,
 	}) {
 		let res = `
-        <input type="${type}" name="${name}" id="${name}" value="${value}" placeholder="${placeholder}" pattern="${pattern} ${required ? "required" : ""}" />
-		<br />
-      	`
+        <input 
+            type="${type}" 
+            name="${name}" 
+            id="${name}" 
+            value="${value}" 
+            placeholder="${placeholder}" 
+            pattern="${pattern}" 
+            ${required ? "required" : ""}
+        />
+        <br />
+    `
 
 		if (label) {
 			res = `
-			${label}
-			${res}
-			`
+            ${label}
+            ${res}
+        `
 		}
 
 		return res
@@ -232,15 +213,23 @@ class Menu {
 		required = true,
 	}) {
 		let res = `
-        <input type="${type}" name="${name}" id="${name}" value="${value}" placeholder="${placeholder}" pattern="${pattern} ${required ? "required" : ""}" />
-		<br />
-      	`
+        <input 
+            type="${type}" 
+            name="${name}" 
+            id="${name}" 
+            value="${value}" 
+            placeholder="${placeholder}" 
+            pattern="${pattern}" 
+            ${required ? "required" : ""}
+        />
+        <br />
+    `
 
 		if (label) {
 			res = `
-			${label}
-			${res}
-			`
+            ${label}
+            ${res}
+        `
 		}
 
 		return res
