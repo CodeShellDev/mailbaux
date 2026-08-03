@@ -3,9 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Home</title>
-		<link
-			rel="stylesheet"
-			href="./style/style.css" />
+		<link rel="stylesheet" href="./style/style.css" />
 	</head>
 	<body>
 		<h1>Mailboxes</h1>
@@ -34,6 +32,7 @@
 						label: "Name",
 						name: "name",
 						placeholder: "Enter name",
+						required: true,
 					},
 					{
 						type: "hidden",
@@ -53,11 +52,13 @@
 						label: "Name",
 						name: "name",
 						placeholder: "Enter name",
+						required: true,
 					},
 					{
 						label: "Email",
 						name: "email",
 						placeholder: "Enter Email",
+						required: true,
 					},
 				],
 				onSubmit: async () => {

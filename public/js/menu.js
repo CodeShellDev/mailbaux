@@ -98,38 +98,28 @@ class PopupMenu {
 		return wrapper
 	}
 
-	renderField(data) {
-		let dataStr = ""
-
-		const attributes = {
-			action: "default",
-			name: "",
-			label: "",
-			type: "text",
-			pattern: ".*",
-			placeholder: "",
-		}
-
-		for (const [key, value] of Object.entries(data)) {
-			if (Object.hasOwn(attributes, key)) {
-				attributes[key] = value
-			} else {
-				dataStr = `data-value="${value}" data-name="${key}"`
-			}
-		}
-
-		return `
-        <input 
-			type="${attributes.type}" 
-			name="${attributes.name}" 
-			id="${attributes.name}" 
-			value="${attributes.label}" 
-			placeholder="${attributes.placeholder}" 
-			pattern="${attributes.pattern}"
-			data-action="${attributes.action}"
-			${dataStr}
-		/>
+	renderField({
+		label = null,
+		name = "",
+		type = "text",
+		value = "",
+		placeholder = "",
+		pattern = ".*",
+		required = true,
+	}) {
+		let res = `
+        <input type="${type}" name="${name}" id="${name}" value="${value}" placeholder="${placeholder}" pattern="${pattern} ${required ? "required" : ""}" />
+		<br />
       	`
+
+		if (label) {
+			res = `
+			${label}
+			${res}
+			`
+		}
+
+		return res
 	}
 
 	open(overwrites = []) {
@@ -239,9 +229,10 @@ class Menu {
 		value = "",
 		placeholder = "",
 		pattern = ".*",
+		required = true,
 	}) {
 		let res = `
-        <input type="${type}" name="${name}" id="${name}" value="${value}" placeholder="${placeholder}" pattern="${pattern}" />
+        <input type="${type}" name="${name}" id="${name}" value="${value}" placeholder="${placeholder}" pattern="${pattern} ${required ? "required" : ""}" />
 		<br />
       	`
 
