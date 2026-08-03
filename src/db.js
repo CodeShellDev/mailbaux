@@ -118,30 +118,31 @@ async function UpdateBy(query, update) {
 
 // REDIS
 
-async function GetFromCache(key, hash = false) {
-	if (hash) {
-		return await redisClient.hGetAll(key)
-	} else {
-		return await redisClient.get(key)
+async function GetFromCache(key) {
+	const value = await redisClient.get(key)
+
+	if (value === null) {
+		return null
+	}
+
+	try {
+		return JSON.parse(value)
+	} catch {
+		return value
 	}
 }
 
-async function WriteToCache(key, value, hash = false, ttl = 3600) {
-	if (hash) {
-		await redisClient.hSet(key, value)
-	} else {
-		await redisClient.set(key, value)
+async function WriteToCache(key, value, ttl = 3600) {
+	if (typeof value !== "string") {
+		value = JSON.stringify(value)
 	}
 
+	await redisClient.set(key, value)
 	await redisClient.expire(key, ttl)
 }
 
-async function DeleteFromCache(key, hash = false) {
-	if (hash) {
-		await redisClient.hDel(key)
-	} else {
-		await redisClient.del(key)
-	}
+async function DeleteFromCache(key) {
+	await redisClient.del(key)
 }
 
 exports.DeleteUserByID = DeleteUserByID

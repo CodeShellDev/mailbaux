@@ -161,7 +161,7 @@ router.get("/callback", async (req, res, next) => {
 			return res.status(400).send("Missing state")
 		}
 
-		const stateData = await db.GetFromCache(`state:${nonce}`, true)
+		const stateData = await db.GetFromCache(`state:${nonce}`)
 
 		if (!stateData?.host) {
 			return res.status(400).send("Invalid or expired state")
@@ -193,7 +193,7 @@ router.get("/callback", async (req, res, next) => {
 
 		const codeHandle = crypto.randomBytes(24).toString("hex")
 
-		await db.WriteToCache(`code:${codeHandle}`, tokenRes, true)
+		await db.WriteToCache(`code:${codeHandle}`, tokenRes)
 
 		const idToken = DecodeToken(tokenRes.id_token)
 
@@ -222,7 +222,7 @@ router.get("/mailbox", async (req, res, next) => {
 
 		const originalHost = await db.GetFromCache(`state:${mailData.state}`)
 
-		const tokenRes = await db.GetFromCache(`code:${mailData.code}`, true)
+		const tokenRes = await db.GetFromCache(`code:${mailData.code}`)
 
 		if (!tokenRes?.id_token) {
 			return res.status(400).send("Session expired, please restart")
@@ -259,7 +259,7 @@ router.post("/token", async (req, res, next) => {
 			return res.status(400).json({ error: "invalid_request" })
 		}
 
-		const tokenRes = await db.GetFromCache(`code:${req.body.code}`, true)
+		const tokenRes = await db.GetFromCache(`code:${req.body.code}`)
 
 		if (!tokenRes?.id_token) {
 			return res.status(400).json({ error: "invalid_grant" })
@@ -287,7 +287,7 @@ router.post("/token", async (req, res, next) => {
 		const newIdToken = SignToken(newPayload)
 
 		// Keep access-token -> id mapping alive only as long as the token itself is valid
-		await db.WriteToCache(`access:${accessToken}`, id, false, 300)
+		await db.WriteToCache(`access:${accessToken}`, id, 300)
 
 		const responseBody = {
 			access_token: accessToken,
