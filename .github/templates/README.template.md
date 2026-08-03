@@ -32,6 +32,12 @@ Create a `.env` file in the same directory as your `docker-compose.yaml` and cop
 +{{{ read "examples/config.env" }}}
 ```
 
+#### Defaults
+
+```dotenv
++{{{ read "examples/defaults.env" }}}
+```
+
 ### OAuth Setup
 
 Configure an OAuth authentication method in your mail server.
