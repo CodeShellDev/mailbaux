@@ -11,7 +11,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY . .
 
-RUN mkdir -p /app/secrets && chown -R node:node /app
+RUN mkdir -p /app/data/secrets && chown -R node:node /app
 
 USER node
 
