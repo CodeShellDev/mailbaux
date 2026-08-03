@@ -10,6 +10,8 @@ let redisClient
 async function Init() {
 	mongoClient = new MongoClient(config.DB_URI)
 
+	await mongoClient.connect()
+
 	logger.db("Connected to MongoDB")
 
 	mongoSession = mongoClient.startSession()
@@ -18,7 +20,7 @@ async function Init() {
 
 	redisClient = redis.createClient({ url: config.REDIS_URI })
 
-	redisClient.connect()
+	await redisClient.connect()
 
 	logger.db("Connected to Redis")
 }
