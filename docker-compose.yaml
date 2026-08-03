@@ -22,9 +22,9 @@ services:
     image: mongo:7
     container_name: mailauth-db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${DB_NAME}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-mailauth}
     volumes:
       - db:/data/db
     networks:
