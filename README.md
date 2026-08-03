@@ -1,55 +1,61 @@
 # Mailauth
 
-Mailauth is a Mailbox Manager which enables you too select between your Mailboxes and authenticate with your Mailserver (like [mailcow](https://github.com/mailcow/mailcow-dockerized))
+Mailauth is a mailbox manager that allows users to select between multiple mailboxes and authenticate with their mail server (such as [mailcow](https://github.com/mailcow/mailcow-dockerized)) through an OAuth2-compatible identity provider.
 
 ## Screenshots
 
-![mailauth-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
+**Home**
+![mailauth home](./screenshots/home.png)
+
+**Select flow**
+![mailauth select flow](./screenshots/select-flow.png)
 
 ## Getting Started
 
-Get the latest version of the `docker-compose.yaml` file:
+### Docker Compose
+
+Download the latest version of the `docker-compose.yaml` file:
 
 ```yaml
----
 services:
   mailauth:
     image: ghcr.io/codeshelldev/mailauth:latest
     container_name: mailauth
     ports:
-      - "80:80"
+      - "8070:8070"
+    environment:
+      DB_HOST: ${DB_HOST:-mongo:27017}
+      DB_USER: ${DB_USER:-admin}
+      DB_NAME: ${DB_NAME:-mailauth}
+      REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
+    depends_on:
+      - mongo
+      - redis
     restart: unless-stopped
     networks:
-      mailauth:
-        aliases:
-          - mailauth
+      - mailauth
 
-  mongodb:
-    image: mongo:latest # Use arm64v8/mongo for ARM Architecture
+  mongo:
+    image: mongo:7
     container_name: mailauth-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-mailauth}
     volumes:
       - db:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
-    env_file:
-      - .env
     networks:
-      mailauth:
-        aliases:
-          - mongo
+      - mailauth
     restart: unless-stopped
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     container_name: mailauth-redis
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
-    env_file:
-      - .env
     networks:
-      mailauth:
-        aliases:
-          - redis
+      - mailauth
     restart: unless-stopped
 
 networks:
@@ -57,14 +63,16 @@ networks:
 
 volumes:
   db:
+
 ```
 
-### Setup
+### Configuration
 
-Mailauth _currently_ works by modifying the `email` claim during Token Exchange and Userinfo,
-this means that you **will have to** use a IdP (like [authentik](https://goauthentik.io)).
+Mailauth currently works by modifying the `email` claim during OAuth2 **Token Exchange** and **UserInfo** requests.
 
-Create a `.env` file inside of you `docker-compose.yaml` directory and copy the template below
+Because of this, Mailauth requires an external Identity Provider (IdP), such as [authentik](https://goauthentik.io).
+
+Create a `.env` file in the same directory as your `docker-compose.yaml` and copy the configuration template:
 
 ```dotenv
 # Mail
@@ -92,19 +100,9 @@ APP_TOKEN_ENDPOINT=
 APP_USERINFO_ENDPOINT=
 APP_LOGOUT_ENDPOINT=
 
-APP_REDIRECT_PATH=/oauth/app/callback
+# Storage
 
-# DB
-
-MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=SECURE_ROOT_PW
-MONGO_INITDB_DATABASE=mailauth
-
-MONGO_USER=mailauth
-MONGO_PW=SECURE_PW
-
-# ---- #
-
+DB_PASSWORD=SECURE_ROOT_PW
 REDIS_PASSWORD=SECURE_REDIS_PW
 
 # General
@@ -112,43 +110,27 @@ REDIS_PASSWORD=SECURE_REDIS_PW
 SESSION_SECRET=SECURE_KEY # Gen with openssl
 
 HOST=https://mailauth.domain.com
-
-PREFIX=/ # Optional
-
-DB_HOST=mongodb://${MONGO_USER}:${MONGO_PW}@mongo:27017/${MONGO_INITDB_DATABASE}
-REDIS_HOST=redis://default:${REDIS_PASSWORD}@redis:6379
 ```
 
-Now you need to setup a Oauth Authentication Method in your mailserver,
-but instead of using your IdP's endpoints you use:
+### OAuth Setup
 
-* `/oauth/mail/authorize`
-* `/oauth/mail/token`
-* `/oauth/mail/userinfo`
+Configure an OAuth authentication method in your mail server.
 
-And set Redirect URI to the one from your `.env` file.
+Instead of using your IdP's OAuth endpoints, use the Mailauth endpoints:
 
-Next create `init-mongo.js` in your working directory:
+| Endpoint       | URL                     |
+| -------------- | ----------------------- |
+| Authorization  | `/oauth/mail/authorize` |
+| Token Exchange | `/oauth/mail/token`     |
+| User Info      | `/oauth/mail/userinfo`  |
 
-```js
-const PASSWORD = process.env.MONGO_PW
-const USER = process.env.MONGO_USER
-const DB = process.env.MONGO_INITDB_DATABASE
+Set the redirect URI to the value configured in your `.env` file.
 
-db = db.getSiblingDB(DB) // Switch to your target database
-db.createUser({
-	user: USER,
-	pwd: PASSWORD,
-	roles: [
-		{ role: "readWrite", db: DB }, // Give read/write access to 'mailauth'
-	],
-})
-```
+## Reverse Proxy
 
-### Reverse Proxy
+OAuth2 authentication should always be used over a secure connection.
 
-When working with OAuth2 and Auth in general it is recommended to be sure to use secure connections,
-here you will see a Reverse Proxy implementation with traefik:
+The following example shows a reverse proxy setup using Traefik:
 
 ```yaml
 ---
@@ -163,10 +145,18 @@ services:
       - traefik.http.routers.mailauth-secure.tls=true
       - traefik.http.routers.mailauth-secure.tls.certresolver=resolver
       - traefik.http.routers.mailauth-secure.service=mailauth-svc
-      - traefik.http.services.mailauth-svc.loadbalancer.server.port=80
+      - traefik.http.services.mailauth-svc.loadbalancer.server.port=8070
       - traefik.docker.network=proxy
+    environment:
+      DB_HOST: ${DB_HOST:-mongo:27017}
+      DB_USER: ${DB_USER:-admin}
+      DB_NAME: ${DB_NAME:-mailauth}
+      REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
+    depends_on:
+      - mongo
+      - redis
     restart: unless-stopped
     networks:
       mailauth:
@@ -174,30 +164,25 @@ services:
           - mailauth
       proxy:
 
-  mongodb:
-    image: mongo:latest # Use arm64v8/mongo for ARM Architecture
+  mongo:
+    image: mongo:7
     container_name: mailauth-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-mailauth}
     volumes:
       - db:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
-    env_file:
-      - .env
     networks:
-      mailauth:
-        aliases:
-          - mongo
+      - mailauth
     restart: unless-stopped
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     container_name: mailauth-redis
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
-    env_file:
-      - .env
     networks:
-      mailauth:
-        aliases:
-          - redis
+      - mailauth
     restart: unless-stopped
 
 networks:
@@ -207,24 +192,32 @@ networks:
 
 volumes:
   db:
+
 ```
 
 ## Usage
 
-When authenticating via mailauth you get redirected to your actual IdP then to `/select`,
-where you will be able to select your mailbox, mailauth changes the `email` claim and now you're logged in.
+When authenticating through Mailauth:
+
+1. You are redirected to your configured IdP.
+2. After successful authentication, Mailauth redirects you to the mailbox selection page.
+3. You select the mailbox you want to authenticate with.
+4. Mailauth updates the `email` claim and completes the OAuth2 flow.
+
+You are now authenticated with the selected mailbox.
 
 ## Contributing
 
-Found an Issue or want to see something implemented into Mailauth?
-Open up an Issue or start a Pull Request!
+Found a bug or have an idea for improving Mailauth?
 
-But always be respectful and patient, we are all volunteers after all.
+Feel free to open an issue or submit a pull request.
+
+Please be respectful and patient when contributing. Mailauth is maintained by volunteers.
 
 ## Supporting
 
-Found this Project useful? Let others know about Mailauth by ⭐️ this Repo!
+If you find Mailauth useful, consider giving the repository a ⭐ to help others discover it.
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+This Project is licensed under the [MIT License](./LICENSE).
