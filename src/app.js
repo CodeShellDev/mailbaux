@@ -73,9 +73,19 @@ app.use((req, res, next) => {
 
 app.use(config.PREFIX, rootRouter)
 
-app.listen(PORT, () => {
-	db.Init()
-	docker()
+async function start() {
+	try {
+		await db.Init()
 
-	logger.log(`Server running on http://localhost:${PORT}`)
-})
+		await docker()
+
+		app.listen(PORT, () => {
+			logger.log(`Server running on http://localhost:${PORT}`)
+		})
+	} catch (err) {
+		console.error(err)
+		process.exit(1)
+	}
+}
+
+start()
