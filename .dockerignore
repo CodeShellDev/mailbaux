@@ -3,6 +3,7 @@
 .github
 .env
 examples
+screenshots
 docker-compose.yaml
 *.md
 node_modules
