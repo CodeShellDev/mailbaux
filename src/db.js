@@ -124,14 +124,14 @@ async function GetFromCache(key, hash = false) {
 	}
 }
 
-async function WriteToCache(key, value, hash = false) {
+async function WriteToCache(key, value, hash = false, ttl = 3600) {
 	if (hash) {
 		await redisClient.hSet(key, value)
 	} else {
 		await redisClient.set(key, value)
 	}
 
-	await redisClient.expire(key, 3600)
+	await redisClient.expire(key, ttl)
 }
 
 async function DeleteFromCache(key, hash = false) {
