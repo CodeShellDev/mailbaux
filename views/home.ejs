@@ -4,6 +4,7 @@
 		<meta charset="UTF-8" />
 		<title>Home</title>
 		<link rel="stylesheet" href="./style/style.css" />
+		<link rel="icon" href="./favicon.ico" />
 	</head>
 	<body>
 		<h1>Mailboxes</h1>
@@ -27,6 +28,12 @@
 			const settingsMenu = new Menu({
 				title: "Edit Mailbox",
 				endpoint: "<%= prefix %>/data/mailbox/edit",
+				actions: [
+					{
+						label: "Edit",
+						name: "submit",
+					},
+				],
 				fields: [
 					{
 						label: "Name",
@@ -47,6 +54,12 @@
 			const createMenu = new Menu({
 				title: "Create Mailbox",
 				endpoint: "<%= prefix %>/data/mailbox/create",
+				actions: [
+					{
+						label: "Create",
+						name: "submit",
+					},
+				],
 				fields: [
 					{
 						label: "Name",
@@ -79,19 +92,20 @@
 						type: "hidden",
 						name: "email",
 					},
+				],
+				actions: [
 					{
 						label: "Delete",
 						name: "delete",
 						type: "submit",
-						value: "delete",
 						action: "danger",
 					},
 					{
 						label: "Cancel",
 						name: "cancel",
 						type: "submit",
-						value: "cancel",
 						action: "no-danger",
+						cancel: true,
 					},
 				],
 				onSubmit: async () => {
@@ -128,7 +142,7 @@
 							{
 								name: "click",
 								listener: (element, profile) => {
-									deleteMenu.open([{ name: "email", email: profile.email }])
+									deleteMenu.open([{ name: "email", value: profile.email }])
 								},
 							},
 						],
