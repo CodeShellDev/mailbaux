@@ -377,6 +377,11 @@ input[type="text"]:focus {
 	align-items: stretch;
 }
 
+.form-error {
+	color: var(--cancel-btn-color);
+	font-size: 0.9rem;
+}
+
 .form-actions {
 	display: flex;
 	align-items: center;
