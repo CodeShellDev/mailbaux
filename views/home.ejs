@@ -27,6 +27,12 @@
 			const settingsMenu = new Menu({
 				title: "Edit Mailbox",
 				endpoint: "<%= prefix %>/data/mailbox/edit",
+				actions: [
+					{
+						label: "Edit",
+						name: "submit",
+					},
+				],
 				fields: [
 					{
 						label: "Name",
@@ -47,6 +53,12 @@
 			const createMenu = new Menu({
 				title: "Create Mailbox",
 				endpoint: "<%= prefix %>/data/mailbox/create",
+				actions: [
+					{
+						label: "Create",
+						name: "submit",
+					},
+				],
 				fields: [
 					{
 						label: "Name",
