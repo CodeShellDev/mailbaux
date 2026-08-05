@@ -387,7 +387,14 @@ input[type="text"]:focus {
 	overflow: hidden;
 
 	color: var(--cancel-btn-color);
+
+	background: color-mix(in srgb, var(--cancel-btn-color) 10%, transparent);
+	border-left: 3px solid var(--cancel-btn-color);
+	border-radius: 4px;
+
 	font-size: 0.9rem;
+	font-weight: 500;
+	line-height: 1.4;
 
 	opacity: 0;
 	transform: translateY(-4px);

@@ -60,21 +60,26 @@ class PopupMenu {
 				return
 			}
 
-			const response = await fetch(this.endpoint, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(data),
-			})
+			try {
+				const response = await fetch(this.endpoint, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(data),
+				})
 
-			const result = await response.json()
+				const result = await response.json()
 
-			if (!response.ok) {
-				if (this.showErrors)
-					this.displayError(result?.error ?? "Something went wrong")
+				if (!response.ok) {
+					if (this.showErrors)
+						this.displayError(result?.error ?? "Something went wrong")
 
-				return
+					return
+				}
+			} catch (err) {
+				this.displayError("Could not connect to server")
+				console.error(err)
 			}
 
 			if (this.onSubmit) {
@@ -242,21 +247,26 @@ class Menu {
 				if (!this.onSubmitClicked(e, data)) return
 			}
 
-			const response = await fetch(this.endpoint, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(data),
-			})
+			try {
+				const response = await fetch(this.endpoint, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(data),
+				})
 
-			const result = await response.json()
+				const result = await response.json()
 
-			if (!response.ok) {
-				if (this.showErrors)
-					this.displayError(result?.error ?? "Something went wrong")
+				if (!response.ok) {
+					if (this.showErrors)
+						this.displayError(result?.error ?? "Something went wrong")
 
-				return
+					return
+				}
+			} catch (err) {
+				this.displayError("Could not connect to server")
+				console.error(err)
 			}
 
 			if (this.onSubmit) {
