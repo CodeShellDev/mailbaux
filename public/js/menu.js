@@ -1,5 +1,3 @@
-import { response } from "express"
-
 class PopupMenu {
 	constructor({
 		title = "",
