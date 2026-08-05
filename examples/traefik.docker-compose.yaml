@@ -1,4 +1,3 @@
----
 services:
   mailbaux:
     image: ghcr.io/codeshelldev/mailbaux:latest

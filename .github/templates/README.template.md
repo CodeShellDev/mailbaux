@@ -10,9 +10,9 @@ Supported mail servers include solutions such as [mailcow](https://github.com/ma
 
 ![mailbaux-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
 
-# Getting Started
+## Getting Started
 
-## Docker Compose
+### Docker Compose
 
 Get the latest version of the `docker-compose.yaml` file:
 
@@ -20,17 +20,9 @@ Get the latest version of the `docker-compose.yaml` file:
 +{{{ read "docker-compose.yaml" }}}
 ```
 
-## Setup
+### Setup
 
-Mailbaux requires two separate OAuth2 clients because it is involved in two different OAuth2 flows.
-
-The first OAuth client is created for the mail server in your IdP.
-It allows the mail server to authenticate users through Mailbaux.
-During this flow, Mailbaux authenticates the user with your IdP, allows the user to select a mailbox, modifies the `email` claim, and returns the result to the mail server.
-
-The second client is used by Mailbaux itself. This allows users to log into the Mailbaux interface through your IdP, where they can manage their configured mailboxes.
-
-Mailbaux uses two OAuth2 flows:
+Mailbaux requires two separate OAuth2 clients because it is involved in two different OAuth2 flows:
 
 1. **Mail server authentication**
    - Your mail server redirects the user to Mailbaux

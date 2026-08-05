@@ -14,7 +14,7 @@ Mailbaux is a mailbox manager that allows users to select between multiple mailb
 
 ### Docker Compose
 
-Download the latest version of the `docker-compose.yaml` file:
+Get the latest version of the `docker-compose.yaml` file:
 
 ```yaml
 services:
@@ -74,9 +74,9 @@ Because of this, Mailbaux requires an external Identity Provider (IdP), such as 
 Create a `.env` file in the same directory as your `docker-compose.yaml` and copy the configuration template:
 
 ```dotenv
-# Mail
+# Mail Server OAuth Client
+# Created in your IdP for the mail server
 
-# Get from your IdP (for your mailserver)
 MAIL_CLIENT_ID=
 MAIL_CLIENT_SECRET=
 
@@ -87,7 +87,8 @@ MAIL_USERINFO_ENDPOINT=
 MAIL_REDIRECT_URIS=https://mailbaux.domain.com/oauth/mail/callback,https://mailbaux.yourdomain.com/oauth/mail/callback
 MAIL_CALLBACK_URIS=https://mail.domain.com,https://mail.yourdomain.com # This is your mailserver's oauth callback url
 
-# App
+# Mailauth OAuth Client
+# Created in your IdP for Mailauth
 
 # Get this from your IdP (for mailbaux)
 APP_CLIENT_ID=
@@ -101,12 +102,10 @@ APP_LOGOUT_ENDPOINT=
 
 # Storage
 
-DB_PASSWORD=SECURE_ROOT_PW
-REDIS_PASSWORD=SECURE_REDIS_PW
+DB_PASSWORD=SECURE_DB_PASSWORD
+REDIS_PASSWORD=SECURE_REDIS_PASSWORD
 
 # General
-
-SESSION_SECRET=SECURE_KEY # Generate with openssl
 
 HOST=https://mailbaux.domain.com
 ```
@@ -141,12 +140,11 @@ Set the redirect URI to the value configured in your `.env` file.
 
 ## Reverse Proxy
 
-OAuth2 authentication should always be used over a secure connection.
+OAuth2 authentication should always be used over HTTPS.
 
-The following example shows a reverse proxy setup using Traefik:
+An example Traefik setup:
 
 ```yaml
----
 services:
   mailbaux:
     image: ghcr.io/codeshelldev/mailbaux:latest
