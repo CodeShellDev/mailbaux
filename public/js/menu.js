@@ -97,7 +97,7 @@ class PopupMenu {
 					name="${name}" 
 					id="${name}"
 					value="${label ?? ""}"
-					"${cancel ? "data-should-cancel-popup-menu" : ""}"
+					${cancel ? "data-should-cancel-popup-menu" : ""}
 					${dataAttributes}
 				/>
 			</div>
