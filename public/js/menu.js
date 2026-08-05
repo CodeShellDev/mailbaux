@@ -40,13 +40,14 @@ class PopupMenu {
 				if (this.showErrors)
 					this.displayError(result?.error ?? "Something went wrong")
 
-				return
+				return { success: false, error: result?.error }
 			}
-			return response
+
+			return { success: true, response, data: result }
 		} catch (err) {
 			this.displayError("Could not connect to server")
 			console.error(err)
-			return null
+			return { success: false, error: "Network error" }
 		}
 	}
 
@@ -114,6 +115,8 @@ class PopupMenu {
 			}
 
 			const response = await this.request(this.endpoint, data)
+
+			if (!response.success) return
 
 			if (this.onSubmit) {
 				this.onSubmit(response)
@@ -271,14 +274,14 @@ class Menu {
 				if (this.showErrors)
 					this.displayError(result?.error ?? "Something went wrong")
 
-				return
+				return { success: false, error: result?.error }
 			}
 
-			return response
+			return { success: true, response, data: result }
 		} catch (err) {
 			this.displayError("Could not connect to server")
 			console.error(err)
-			return null
+			return { success: false, error: "Network error" }
 		}
 	}
 
@@ -337,6 +340,8 @@ class Menu {
 			}
 
 			const response = await this.request(this.endpoint, data)
+
+			if (!response.success) return
 
 			if (this.onSubmit) {
 				this.onSubmit(response)
