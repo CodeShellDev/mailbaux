@@ -1,14 +1,14 @@
 # Mailbaux
 
-Mailbaux is a mailbox manager that allows users to select between multiple mailboxes and authenticate with their mail server (such as [mailcow](https://github.com/mailcow/mailcow-dockerized)) through an OAuth2-compatible identity provider.
+Mailbaux is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
+
+Mailbaux acts as an OAuth2 relay between your mail server and your IdP.
+
+Supported mail servers include solutions such as [mailcow](https://github.com/mailcow/mailcow-dockerized).
 
 ## Screenshots
 
-**Home**
-![mailbaux home](./screenshots/home.png)
-
-**Select flow**
-![mailbaux select flow](./screenshots/select-flow.png)
+![mailbaux-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
 
 ## Getting Started
 
@@ -63,15 +63,53 @@ networks:
 
 volumes:
   db:
+
+```
+
+### Setup
+
+Mailbaux requires two separate OAuth2 clients because it is involved in two different OAuth2 flows:
+
+1. **Mail server authentication**
+   - Your mail server redirects the user to Mailbaux
+   - Mailbaux redirects the user to your IdP
+   - The IdP authenticates the user
+   - Mailbaux receives the user information
+   - The user selects their mailbox.
+   - Mailbaux modifies the `email` claim and completes the OAuth flow with the mail server
+
+2. **Mailbaux interface authentication**
+   - The user opens Mailbaux directly
+   - Mailbaux verifies the user's identity with your IdP
+   - The IdP authenticates the user
+   - Mailbaux creates a session and allows the user to manage their mailboxes
+
+The general flow:
+
+```mermaid
+flowchart LR
+    User[User]
+
+    Mail[Mail Server<br/>OAuth Client]
+    Mailbaux[Mailbaux<br/>OAuth Relay]
+    IdP[Identity Provider<br/>authentik, etc.]
+
+    User -->|Login| Mail
+    Mail -->|OAuth Request| Mailbaux
+    Mailbaux -->|Select mailbox<br/>Modify email claim| Mail
+
+    User -->|Open interface| Mailbaux
+
+    Mailbaux -->|Redirect Login| IdP
+    Mailbaux -->|Verify Identity| IdP
+    IdP -->|User Information| Mailbaux
 ```
 
 ### Configuration
 
-Mailbaux currently works by modifying the `email` claim during OAuth2 **Token Exchange** and **UserInfo** requests.
+Create a `.env` file in the same directory as your `docker-compose.yaml`.
 
-Because of this, Mailbaux requires an external Identity Provider (IdP), such as [authentik](https://goauthentik.io).
-
-Create a `.env` file in the same directory as your `docker-compose.yaml` and copy the configuration template:
+Copy the example:
 
 ```dotenv
 # Mail Server OAuth Client
@@ -87,11 +125,10 @@ MAIL_USERINFO_ENDPOINT=
 MAIL_REDIRECT_URIS=https://mailbaux.domain.com/oauth/mail/callback,https://mailbaux.yourdomain.com/oauth/mail/callback
 MAIL_CALLBACK_URIS=https://mail.domain.com,https://mail.yourdomain.com # This is your mailserver's oauth callback url
 
-# Mailauth OAuth Client
-# Created in your IdP for Mailauth
+# Mailbaux OAuth Client
+# Created in your IdP for Mailbaux
 
-# Get this from your IdP (for mailbaux)
-APP_CLIENT_ID=
+APP_CLIENT_ID= 
 APP_CLIENT_SECRET=
 
 APP_ISSUER=
@@ -108,6 +145,8 @@ REDIS_PASSWORD=SECURE_REDIS_PASSWORD
 # General
 
 HOST=https://mailbaux.domain.com
+
+SESSION_SECRET=SECURE_KEY
 ```
 
 #### Defaults
@@ -124,21 +163,38 @@ APP_REDIRECT_PATH=/oauth/app/callback
 PREFIX=/
 ```
 
-### OAuth Setup
+#### Storage
 
-Configure an OAuth authentication method in your mail server.
+Mailbaux requires MongoDB and Redis.
 
-Instead of using your IdP's OAuth endpoints, use the Mailbaux endpoints:
+Generate secure passwords:
 
-| Endpoint       | URL                     |
-| -------------- | ----------------------- |
-| Authorization  | `/oauth/mail/authorize` |
-| Token Exchange | `/oauth/mail/token`     |
-| User Info      | `/oauth/mail/userinfo`  |
+```bash
+openssl rand -base64 32
+```
 
-Set the redirect URI to the value configured in your `.env` file.
+Example:
 
-## Reverse Proxy
+```dotenv
+DB_PASSWORD=SECURE_DB_PASSWORD
+REDIS_PASSWORD=SECURE_REDIS_PASSWORD
+```
+
+#### Session Secret
+
+Generate a session secret:
+
+```bash
+openssl rand -hex 32
+```
+
+Set it:
+
+```dotenv
+SESSION_SECRET=SECURE_SESSION_KEY
+```
+
+### Reverse Proxy
 
 OAuth2 authentication should always be used over HTTPS.
 
@@ -203,18 +259,22 @@ networks:
 
 volumes:
   db:
+
 ```
 
 ## Usage
 
 When authenticating through Mailbaux:
 
-1. You are redirected to your configured IdP.
-2. After successful authentication, Mailbaux redirects you to the mailbox selection page.
-3. You select the mailbox you want to authenticate with.
-4. Mailbaux updates the `email` claim and completes the OAuth2 flow.
+1. The user starts the login process from the mail server
+2. The mail server redirects the user to Mailbaux
+3. Mailbaux redirects the user to the configured IdP
+4. The user authenticates with the IdP
+5. Mailbaux receives the user information and shows mailbox selection
+6. The user selects their mailbox
+7. Mailbaux modifies the `email` claim and completes the OAuth flow
 
-You are now authenticated with the selected mailbox.
+The mail server now sees the selected mailbox as the authenticated identity.
 
 ## Contributing
 
