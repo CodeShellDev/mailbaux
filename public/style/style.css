@@ -58,32 +58,39 @@ input {
 }
 
 button {
+	background: none;
+	border: none;
+}
+
+input[type="submit"] {
 	appearance: none;
 	-webkit-appearance: none;
 
 	border: none;
 	outline: none;
 
-	background: transparent;
-
-	padding: 0;
-	margin: 0;
-
-	font: inherit;
-	color: inherit;
-
-	cursor: pointer;
-}
-
-input[type="submit"] {
 	background: var(--submit-btn-color);
+	color: white;
+
 	border-radius: 8px;
 	padding: 0.5rem 1rem;
-	transition: 0.2s ease;
+
+	cursor: pointer;
+
+	transition:
+		filter 0.2s ease,
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
 }
 
 input[type="submit"]:hover {
 	filter: brightness(1.15);
+	transform: translateY(-1px);
+}
+
+input[type="submit"]:focus-visible {
+	outline: 2px solid var(--select-color);
+	outline-offset: 3px;
 }
 
 input[type="submit"][data-action="danger"] {
@@ -245,9 +252,14 @@ input[type="text"]:focus {
 	width: 18px;
 	height: 18px;
 
+	object-fit: contain;
+	display: block;
+
 	opacity: 0.85;
 
-	transition: transform 0.2s ease;
+	transition:
+		transform 0.2s ease,
+		opacity 0.2s ease;
 }
 
 .mailbox-add:hover {
