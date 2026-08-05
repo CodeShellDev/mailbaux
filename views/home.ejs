@@ -106,6 +106,9 @@
 						action: "no-danger",
 					},
 				],
+				onSubmitClicked: (e, data) => {
+					return e?.submitter?.dataset?.cancel
+				},
 				onSubmit: async () => {
 					await mailboxGrid.update()
 				},
@@ -140,7 +143,7 @@
 							{
 								name: "click",
 								listener: (element, profile) => {
-									deleteMenu.open([{ name: "email", email: profile.email }])
+									deleteMenu.open([{ name: "email", value: profile.email }])
 								},
 							},
 						],

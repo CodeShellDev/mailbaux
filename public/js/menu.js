@@ -6,6 +6,7 @@ class PopupMenu {
 		fields = [],
 		actions = [],
 		onSubmit = null,
+		onSubmitClicked = null,
 	}) {
 		this.title = title
 		this.description = description
@@ -13,6 +14,7 @@ class PopupMenu {
 		this.fields = fields
 		this.actions = actions
 		this.onSubmit = onSubmit
+		this.onSubmitClicked = onSubmitClicked
 		this.container = this.render()
 		this.overlay = null
 	}
@@ -40,6 +42,10 @@ class PopupMenu {
 
 			const data = Object.fromEntries(new FormData(e.target).entries())
 
+			if (this.onSubmitClicked) {
+				if (!this.onSubmitClicked(e, data)) return
+			}
+
 			const response = await fetch(this.endpoint, {
 				method: "POST",
 				headers: {
@@ -50,7 +56,7 @@ class PopupMenu {
 
 			if (response.status === 200) {
 				if (this.onSubmit) {
-					this.onSubmit()
+					this.onSubmit(response)
 				}
 
 				this.close()
@@ -158,12 +164,14 @@ class Menu {
 		fields = [],
 		actions = [{ label: "Submit", name: "submit" }],
 		onSubmit = null,
+		onSubmitClicked = null,
 	}) {
 		this.title = title
 		this.endpoint = endpoint
 		this.fields = fields
 		this.actions = actions
 		this.onSubmit = onSubmit
+		this.onSubmitClicked = onSubmitClicked
 		this.container = this.render()
 		this.overlay = null
 	}
@@ -189,6 +197,10 @@ class Menu {
 			e.preventDefault()
 
 			const data = Object.fromEntries(new FormData(e.target).entries())
+
+			if (this.onSubmitClicked) {
+				if (!this.onSubmitClicked(e, data)) return
+			}
 
 			const response = await fetch(this.endpoint, {
 				method: "POST",
