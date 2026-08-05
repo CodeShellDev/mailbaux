@@ -58,8 +58,21 @@ input {
 }
 
 button {
-	background: none;
+	appearance: none;
+	-webkit-appearance: none;
+
 	border: none;
+	outline: none;
+
+	background: transparent;
+
+	padding: 0;
+	margin: 0;
+
+	font: inherit;
+	color: inherit;
+
+	cursor: pointer;
 }
 
 input[type="submit"] {
@@ -197,7 +210,9 @@ input[type="text"]:focus {
 	display: flex;
 	justify-content: flex-end;
 	align-items: center;
-	gap: 0.5rem;
+	gap: 10px;
+
+	height: auto;
 }
 
 .mailbox-tabs img {
@@ -210,18 +225,40 @@ input[type="text"]:focus {
 	align-items: center;
 	justify-content: center;
 
-	background: var(--add-btn-color);
+	width: 38px;
+	height: 38px;
 
-	width: 36px;
-	height: 36px;
+	background: var(--surface-color);
+	border: 1px solid var(--border-color);
 
-	border-radius: 8px;
+	border-radius: 50%;
 
-	transition: 0.2s ease;
+	padding: 0;
+
+	transition:
+		background 0.2s ease,
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.mailbox-add img {
+	width: 18px;
+	height: 18px;
+
+	opacity: 0.85;
+
+	transition: transform 0.2s ease;
 }
 
 .mailbox-add:hover {
-	filter: brightness(1.15);
+	background: var(--surface-hover);
+	transform: translateY(-2px);
+	box-shadow: var(--shadow);
+}
+
+.mailbox-add:hover img {
+	transform: rotate(90deg);
+	opacity: 1;
 }
 
 .mailbox-actions {
