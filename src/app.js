@@ -81,6 +81,9 @@ function CreateApp() {
 	})
 
 	app.use((err, req, res, next) => {
+		console.log("ERROR HANDLER HIT", err)
+		console.log("IS HTTP ERROR?", err instanceof HttpError)
+
 		if (err instanceof HttpError) {
 			return res.status(err.status).json({ error: err.message })
 		}
