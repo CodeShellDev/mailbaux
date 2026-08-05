@@ -13,6 +13,22 @@ const {
 	RequireMailOrAppAuth,
 } = require("../router")
 
+function IsValideEmail(email) {
+	if (!email || typeof email !== "string") {
+		return false
+	}
+
+	const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+	return regex.test(email)
+}
+
+function IsEmailAllowed(email) {
+	const [, domain] = email.split("@")
+
+	return micromatch.isMatch(domain, config.ALLOWED_EMAIL_DOMAINS)
+}
+
 function ValidateEmail(email) {
 	if (!email || typeof email !== "string") {
 		throw new HttpError(400, "Invalid email")
@@ -89,7 +105,7 @@ router.get("/mailbox", RequireMailOrAppAuth, async (req, res, next) => {
 
 	if (res.locals.context.isMail)
 		mailboxes = mailboxes.filter(
-			(m) => ValidateEmail(m.email) && EmailAllowed(m.email),
+			(m) => IsValideEmail(m.email) && IsEmailAllowed(m.email),
 		)
 
 	return res.json(mailboxes)
