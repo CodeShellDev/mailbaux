@@ -2,6 +2,7 @@ const express = require("express")
 const router = express.Router()
 const { HttpError } = require("./types/errors")
 const micromatch = require("micromatch")
+const db = require("./utils/db")
 
 // App OIDC: full trust, user logged into mailbaux directly
 function GetAppUserID(req) {
