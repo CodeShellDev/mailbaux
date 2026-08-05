@@ -21,6 +21,7 @@ class PopupMenu {
 		this.overlay = null
 		this.showErrors = showErrors
 		this.precheckEndpoint = precheckEndpoint
+		this.form = null
 	}
 
 	async request(endpoint, data) {
@@ -54,7 +55,7 @@ class PopupMenu {
 			typeof this.precheckEndpoint === "string" &&
 			this.precheckEndpoint.trim().length > 0
 		) {
-			const data = Object.fromEntries(new FormData(e.target).entries())
+			const data = Object.fromEntries(new FormData(this.form).entries())
 
 			await this.request(this.precheckEndpoint, data)
 		}
@@ -80,9 +81,9 @@ class PopupMenu {
 
 		wrapper.innerHTML = html
 
-		const form = wrapper.querySelector("form")
+		this.form = wrapper.querySelector("form")
 
-		const fields = [...form.querySelectorAll("input[required]")]
+		const fields = [...this.form.querySelectorAll("input[required]")]
 		const lastField = fields.at(-1)
 
 		lastField.addEventListener("blur", async (e) => {
@@ -93,7 +94,7 @@ class PopupMenu {
 			}
 		})
 
-		form.addEventListener("submit", async (e) => {
+		this.form.addEventListener("submit", async (e) => {
 			e.preventDefault()
 
 			this.clearError()
@@ -251,6 +252,7 @@ class Menu {
 		this.overlay = null
 		this.showErrors = showErrors
 		this.precheckEndpoint = precheckEndpoint
+		this.form = null
 	}
 
 	async request(data, endpoint) {
@@ -285,7 +287,7 @@ class Menu {
 			typeof this.precheckEndpoint === "string" &&
 			this.precheckEndpoint.trim().length > 0
 		) {
-			const data = Object.fromEntries(new FormData(e.target).entries())
+			const data = Object.fromEntries(new FormData(this.form).entries())
 
 			await this.request(this.precheckEndpoint, data)
 		}
@@ -310,9 +312,9 @@ class Menu {
 
 		wrapper.innerHTML = html
 
-		const form = wrapper.querySelector("form")
+		this.form = wrapper.querySelector("form")
 
-		const fields = [...form.querySelectorAll("input[required]")]
+		const fields = [...this.form.querySelectorAll("input[required]")]
 		const lastField = fields.at(-1)
 
 		lastField.addEventListener("blur", async (e) => {
@@ -323,7 +325,7 @@ class Menu {
 			}
 		})
 
-		form.addEventListener("submit", async (e) => {
+		this.form.addEventListener("submit", async (e) => {
 			e.preventDefault()
 
 			this.clearError()
