@@ -1,5 +1,3 @@
-import { name } from "ejs"
-
 class PopupMenu {
 	constructor({
 		title = "",
