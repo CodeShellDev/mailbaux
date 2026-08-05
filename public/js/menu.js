@@ -14,7 +14,7 @@ class PopupMenu {
 		this.actions = actions
 		this.onSubmit = onSubmit
 		this.container = this.render()
-		this.overlay = this.renderOverlay()
+		this.overlay = null
 	}
 
 	render() {
@@ -138,6 +138,7 @@ class PopupMenu {
 		this.fields = fields
 
 		this.container = this.render()
+		this.overlay = this.renderOverlay()
 
 		document.body.appendChild(this.overlay)
 		document.body.appendChild(this.container)
@@ -164,7 +165,7 @@ class Menu {
 		this.actions = actions
 		this.onSubmit = onSubmit
 		this.container = this.render()
-		this.overlay = this.renderOverlay()
+		this.overlay = null
 	}
 
 	render() {
@@ -287,6 +288,7 @@ class Menu {
 		this.fields = fields
 
 		this.container = this.render()
+		this.overlay = this.renderOverlay()
 
 		document.body.appendChild(this.overlay)
 		document.body.appendChild(this.container)
