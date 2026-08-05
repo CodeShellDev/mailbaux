@@ -1,15 +1,19 @@
+import { name } from "ejs"
+
 class PopupMenu {
 	constructor({
-		title = "Settings",
+		title = "",
 		description = "",
 		endpoint = "/",
 		fields = [],
+		actions = [],
 		onSubmit = null,
 	}) {
 		this.title = title
 		this.description = description
 		this.endpoint = endpoint
 		this.fields = fields
+		this.actions = actions
 		this.onSubmit = onSubmit
 		this.container = this.render()
 		this.overlay = this.renderOverlay()
@@ -17,23 +21,21 @@ class PopupMenu {
 
 	render() {
 		const wrapper = document.createElement("div")
-		wrapper.className = "mailbox-popup-menu"
+		wrapper.className = "popup-menu"
 
 		const html = `
         <h3>${this.title}</h3>
 		<p>${this.description}</p>
         <br />
         <form method="post" action="${this.endpoint}">
-          ${this.fields.map((field) => this.renderField(field)).join("")}
+        	${this.fields.map((field) => this.renderField(field)).join("")}
+			<div class="form-actions">
+          		${this.actions.map((actions) => this.renderAction(actions)).join("")}
+		  	</div>
         </form>
       	`
 
 		wrapper.innerHTML = html
-		wrapper.querySelector("form").style.display = "flex"
-		wrapper.querySelector("form").style.flexDirection = "row"
-		wrapper.querySelector("form").style.justifyContent = "center"
-		wrapper.querySelector("form").style.alignItems = "center"
-		wrapper.querySelector("form").style.gap = "10px"
 
 		wrapper.querySelector("form").addEventListener("submit", async (e) => {
 			e.preventDefault()
@@ -71,32 +73,52 @@ class PopupMenu {
 		return wrapper
 	}
 
+	renderAction({ label = null, name = "", ...custom }) {
+		const dataAttributes = Object.entries(custom)
+			.map(([key, value]) => `data-${key}="${value}"`)
+			.join(" ")
+
+		return `
+			<div class="form-action">
+				<input 
+					type="submit"
+					name="${name}" 
+					id="${name}"
+					${dataAttributes}
+				/>
+			</div>
+		`
+	}
+
 	renderField({
 		label = null,
 		name = "",
 		type = "text",
+		value = "",
 		placeholder = "",
 		pattern = ".*",
-		required = false,
+		required = true,
 		...custom
 	}) {
 		const dataAttributes = Object.entries(custom)
 			.map(([key, value]) => `data-${key}="${value}"`)
 			.join(" ")
 
-		let res = `
-        <input 
-            type="${type}" 
-            name="${name}" 
-            id="${name}" 
-            placeholder="${placeholder}" 
-            pattern="${pattern}" 
-            ${required ? "required" : ""}
-			${dataAttributes}
-        />
-    `
-
-		return res
+		return `
+			<div class="form-field">
+				${label ? `<label for="${name}">${label}</label>` : ""}
+				<input 
+					type="${type}" 
+					name="${name}" 
+					id="${name}"
+					value="${value ?? ""}"
+					placeholder="${placeholder}"
+					pattern="${pattern}"
+					${required ? "required" : ""}
+					${dataAttributes}
+				/>
+			</div>
+		`
 	}
 
 	open(overwrites = []) {
@@ -134,14 +156,16 @@ class PopupMenu {
 
 class Menu {
 	constructor({
-		title = "Settings",
+		title = "",
 		endpoint = "/",
 		fields = [],
+		actions = [{ label: "Submit", name: "submit" }],
 		onSubmit = null,
 	}) {
 		this.title = title
 		this.endpoint = endpoint
 		this.fields = fields
+		this.actions = actions
 		this.onSubmit = onSubmit
 		this.container = this.render()
 		this.overlay = this.renderOverlay()
@@ -149,15 +173,16 @@ class Menu {
 
 	render() {
 		const wrapper = document.createElement("div")
-		wrapper.className = "mailbox-menu"
+		wrapper.className = "menu"
 
 		const html = `
         <h3>${this.title}</h3>
         <hr /><br />
         <form method="post" action="${this.endpoint}">
-          ${this.fields.map((field) => this.renderField(field)).join("<br />")}
-          <hr /><br />
-          <input type="submit" value="Submit" />
+        	${this.fields.map((field) => this.renderField(field)).join("")}
+			<div class="form-actions">
+          		${this.actions.map((actions) => this.renderAction(actions)).join("")}
+		  	</div>
         </form>
       	`
 
@@ -199,6 +224,23 @@ class Menu {
 		return wrapper
 	}
 
+	renderAction({ label = null, name = "", ...custom }) {
+		const dataAttributes = Object.entries(custom)
+			.map(([key, value]) => `data-${key}="${value}"`)
+			.join(" ")
+
+		return `
+			<div class="form-action">
+				<input 
+					type="submit"
+					name="${name}" 
+					id="${name}"
+					${dataAttributes}
+				/>
+			</div>
+		`
+	}
+
 	renderField({
 		label = null,
 		name = "",
@@ -213,27 +255,21 @@ class Menu {
 			.map(([key, value]) => `data-${key}="${value}"`)
 			.join(" ")
 
-		let res = `
-        <input 
-            type="${type}" 
-            name="${name}" 
-            id="${name}" 
-            value="${value}" 
-            placeholder="${placeholder}" 
-            pattern="${pattern}" 
-            ${required ? "required" : ""}
-			${dataAttributes}
-        />
-    `
-
-		if (label) {
-			res = `
-            ${label}
-            ${res}
-        `
-		}
-
-		return res
+		return `
+			<div class="form-field">
+				${label ? `<label for="${name}">${label}</label>` : ""}
+				<input 
+					type="${type}" 
+					name="${name}" 
+					id="${name}"
+					value="${value ?? ""}"
+					placeholder="${placeholder}"
+					pattern="${pattern}"
+					${required ? "required" : ""}
+					${dataAttributes}
+				/>
+			</div>
+		`
 	}
 
 	open(overwrites = []) {

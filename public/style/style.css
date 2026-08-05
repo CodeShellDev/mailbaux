@@ -185,31 +185,94 @@ input[type="text"]:focus {
 	font-size: 0.9rem;
 }
 
-.mailbox-menu,
-.mailbox-popup-menu {
-	position: fixed;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
+.form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
 
-	background: var(--surface-color);
+.form-field label {
+	color: var(--muted-color);
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.menu input[type="text"],
+.popup-menu input[type="text"] {
+	background: var(--input-color);
 
 	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
+	border-radius: 8px;
 
-	padding: 1rem;
+	padding: 0.65rem 0.8rem;
 
-	box-shadow: var(--shadow);
-	z-index: 100;
+	color: var(--text-color);
+
+	transition:
+		border-color 0.2s ease,
+		background 0.2s ease,
+		box-shadow 0.2s ease;
 }
 
-.mailbox-menu {
-	width: min(700px, 90vw);
+.menu input[type="text"]:hover,
+.popup-menu input[type="text"]:hover {
+	background: var(--surface-hover);
 }
 
-.mailbox-popup-menu {
-	width: min(400px, 90vw);
-	text-align: center;
+.menu input[type="text"]:focus,
+.popup-menu input[type="text"]:focus {
+	border-color: var(--select-color);
+
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.menu form {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.popup-menu form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	align-items: stretch;
+}
+
+.popup-menu .form-actions {
+	display: flex;
+
+	justify-content: center;
+	align-items: center;
+
+	gap: 10px;
+
+	margin-top: 12px;
+	padding-top: 12px;
+
+	border-top: 1px solid var(--border-color);
+}
+
+.popup-menu .form-actions input[type="submit"],
+.popup-menu .form-actions button {
+	min-width: 90px;
+
+	padding: 0.5rem 1rem;
+
+	border-radius: 8px;
+
+	font-weight: 600;
+
+	transition:
+		transform 0.2s ease,
+		filter 0.2s ease,
+		background 0.2s ease;
+}
+
+.popup-menu .form-actions input[type="submit"]:hover,
+.popup-menu .form-actions button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.15);
 }
 
 .mailbox-tabs {
