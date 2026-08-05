@@ -305,11 +305,13 @@ Found a bug or have an idea for improving Mailbaux?
 
 Feel free to open an issue or submit a pull request.
 
-Please be respectful and patient when contributing. Mailbaux is maintained by volunteers.
+Please be respectful and patient when contributing.
 
 ## Supporting
 
-If you find Mailbaux useful, consider giving the repository a ⭐ to help others discover it.
+Found this project helpful? Consider leaving a ⭐️!
+
+:)
 
 ## License
 
