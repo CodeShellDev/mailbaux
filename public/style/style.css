@@ -23,7 +23,7 @@
 	--text-color: #f4f4f5;
 	--muted-color: #a1a1aa;
 
-	--select-color: #3b82f6;
+	--focus-color: #3b82f6;
 	--submit-btn-color: #16a34a;
 	--cancel-btn-color: #dc2626;
 
@@ -54,6 +54,20 @@ input {
 	font-family: inherit;
 	color: inherit;
 	cursor: pointer;
+}
+
+button:focus-visible,
+input[type="submit"]:focus-visible {
+	outline: 2px solid var(--focus-color);
+	outline-offset: 3px;
+}
+
+button:disabled,
+input[type="submit"]:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	transform: none;
+	filter: none;
 }
 
 button {
@@ -87,27 +101,37 @@ input[type="submit"]:hover {
 	transform: translateY(-1px);
 }
 
-input[type="submit"]:focus-visible {
-	outline: 2px solid var(--select-color);
-	outline-offset: 3px;
-}
-
 input[type="submit"][data-action="danger"] {
 	background: var(--cancel-btn-color);
 }
 
 input[type="text"] {
 	background: var(--input-color);
+
 	border: 1px solid var(--border-color);
 	border-radius: 8px;
-	padding: 0.6rem 0.8rem;
+
+	padding: 0.65rem 0.8rem;
+
 	width: 100%;
+
+	color: var(--text-color);
+
 	outline: none;
-	transition: border 0.2s ease;
+
+	transition:
+		border-color 0.2s ease,
+		background 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+input[type="text"]:hover {
+	background: var(--surface-hover);
 }
 
 input[type="text"]:focus {
-	border-color: var(--select-color);
+	border-color: var(--focus-color);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .overlay {
@@ -185,94 +209,11 @@ input[type="text"]:focus {
 	font-size: 0.9rem;
 }
 
-.form-field {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-
-.form-field label {
-	color: var(--muted-color);
-	font-size: 0.9rem;
-	font-weight: 500;
-}
-
-.menu input[type="text"],
-.popup-menu input[type="text"] {
-	background: var(--input-color);
-
-	border: 1px solid var(--border-color);
-	border-radius: 8px;
-
-	padding: 0.65rem 0.8rem;
-
-	color: var(--text-color);
-
-	transition:
-		border-color 0.2s ease,
-		background 0.2s ease,
-		box-shadow 0.2s ease;
-}
-
-.menu input[type="text"]:hover,
-.popup-menu input[type="text"]:hover {
-	background: var(--surface-hover);
-}
-
-.menu input[type="text"]:focus,
-.popup-menu input[type="text"]:focus {
-	border-color: var(--select-color);
-
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-.menu form {
-	display: flex;
-	flex-direction: column;
-	gap: 14px;
-}
-
-.popup-menu form {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	align-items: stretch;
-}
-
-.popup-menu .form-actions {
-	display: flex;
-
-	justify-content: center;
-	align-items: center;
-
-	gap: 10px;
-
-	margin-top: 12px;
-	padding-top: 12px;
-
-	border-top: 1px solid var(--border-color);
-}
-
-.popup-menu .form-actions input[type="submit"],
-.popup-menu .form-actions button {
-	min-width: 90px;
-
-	padding: 0.5rem 1rem;
-
-	border-radius: 8px;
-
-	font-weight: 600;
-
-	transition:
-		transform 0.2s ease,
-		filter 0.2s ease,
-		background 0.2s ease;
-}
-
-.popup-menu .form-actions input[type="submit"]:hover,
-.popup-menu .form-actions button:hover {
-	transform: translateY(-1px);
-	filter: brightness(1.15);
+.mailbox-content h3,
+.mailbox-content p {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .mailbox-tabs {
@@ -341,13 +282,19 @@ input[type="text"]:focus {
 	top: 8px;
 	right: 8px;
 
-	display: none;
+	display: flex;
 
 	gap: 8px;
+
+	opacity: 0;
+	pointer-events: none;
+
+	transition: opacity 0.2s ease;
 }
 
 .mailbox-item:hover .mailbox-actions {
-	display: flex;
+	opacity: 1;
+	pointer-events: auto;
 }
 
 .mailbox-actions div {
@@ -361,4 +308,105 @@ input[type="text"]:focus {
 .mailbox-actions img {
 	width: 22px;
 	height: 22px;
+}
+.menu,
+.popup-menu {
+	position: fixed;
+
+	left: 50%;
+	top: 50%;
+
+	transform: translate(-50%, -50%);
+
+	background: var(--surface-color);
+
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+
+	box-shadow: var(--shadow);
+
+	padding: 1rem;
+
+	z-index: 100;
+}
+
+.menu,
+.popup-menu {
+	max-height: 90vh;
+	overflow-y: auto;
+}
+
+.menu,
+.popup-menu {
+	animation: menu-in 0.2s ease-out;
+}
+
+@keyframes menu-in {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -48%) scale(0.96);
+	}
+
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+.form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.form-field label {
+	color: var(--muted-color);
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.menu form {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.popup-menu form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	align-items: stretch;
+}
+
+.form-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+
+	margin-top: 12px;
+	padding-top: 12px;
+
+	border-top: 1px solid var(--border-color);
+}
+
+.form-actions input[type="submit"],
+.form-actions button {
+	min-width: 90px;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	font-weight: 600;
+}
+
+.form-actions input[type="submit"]:hover,
+.form-actions button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.15);
+}
+
+.popup-menu .form-actions {
+	justify-content: center;
+}
+
+.menu .form-actions {
+	justify-content: flex-end;
 }
