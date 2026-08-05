@@ -75,7 +75,6 @@ class PopupMenu {
 		label = null,
 		name = "",
 		type = "text",
-		value = "",
 		placeholder = "",
 		pattern = ".*",
 		required = false,
@@ -90,7 +89,6 @@ class PopupMenu {
             type="${type}" 
             name="${name}" 
             id="${name}" 
-            value="${value}" 
             placeholder="${placeholder}" 
             pattern="${pattern}" 
             ${required ? "required" : ""}
