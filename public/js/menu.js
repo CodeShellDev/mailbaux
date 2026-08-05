@@ -46,7 +46,11 @@ class PopupMenu {
 				if (!this.onSubmitClicked(e, data)) return
 			}
 
-			if (e.submitter.dataset["should-cancel-popup-menu"] !== "") {
+			if (
+				e.submitter &&
+				Object.hasOwn(e.submitter.dataset, "should-cancel-popup-menu")
+			) {
+				this.close()
 				return
 			}
 
@@ -93,7 +97,7 @@ class PopupMenu {
 					name="${name}" 
 					id="${name}"
 					value="${label ?? ""}"
-					data-should-cancel-popup-menu="${cancel ? "1" : ""}"
+					"${cancel ? "data-should-cancel-popup-menu" : ""}"
 					${dataAttributes}
 				/>
 			</div>
