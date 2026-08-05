@@ -66,6 +66,10 @@ class PopupMenu {
 		}
 	}
 
+	async onInput() {
+		this.clearError()
+	}
+
 	render() {
 		const wrapper = document.createElement("div")
 		wrapper.className = "popup-menu"
@@ -97,6 +101,10 @@ class PopupMenu {
 			if (allFilled) {
 				await this.validate()
 			}
+		})
+
+		this.form.addEventListener("input", async (e) => {
+			await this.onInput()
 		})
 
 		this.form.addEventListener("submit", async (e) => {
@@ -304,6 +312,10 @@ class Menu {
 		}
 	}
 
+	async onInput() {
+		this.clearError()
+	}
+
 	render() {
 		const wrapper = document.createElement("div")
 		wrapper.className = "menu"
@@ -334,6 +346,10 @@ class Menu {
 			if (allFilled) {
 				await this.validate()
 			}
+		})
+
+		this.form.addEventListener("input", async (e) => {
+			await this.onInput()
 		})
 
 		this.form.addEventListener("submit", async (e) => {
