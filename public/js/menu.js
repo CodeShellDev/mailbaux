@@ -67,11 +67,11 @@ class PopupMenu {
 				body: JSON.stringify(data),
 			})
 
-			const data = await response.json()
+			const result = await response.json()
 
 			if (!response.ok) {
 				if (this.showErrors)
-					this.displayError(data?.error ?? "Something went wrong")
+					this.displayError(result?.error ?? "Something went wrong")
 
 				return
 			}
@@ -248,11 +248,11 @@ class Menu {
 				body: JSON.stringify(data),
 			})
 
-			const data = await response.json()
+			const result = await response.json()
 
 			if (!response.ok) {
 				if (this.showErrors)
-					this.displayError(data?.error ?? "Something went wrong")
+					this.displayError(result?.error ?? "Something went wrong")
 
 				return
 			}
