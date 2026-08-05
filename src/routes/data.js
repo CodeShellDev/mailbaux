@@ -40,7 +40,9 @@ function ValidateEmail(email) {
 	if (!regex.test(email)) {
 		throw new HttpError(400, "Invalid email")
 	}
+}
 
+function EmailAllowed(email) {
 	const [, domain] = email.split("@")
 
 	if (!micromatch.isMatch(domain, config.ALLOWED_EMAIL_DOMAINS)) {
@@ -50,6 +52,8 @@ function ValidateEmail(email) {
 
 async function ValidateMailboxAsync(email, name) {
 	ValidateEmail(email)
+
+	EmailAllowed(email)
 
 	if (!name || typeof name !== "string") {
 		throw new HttpError(400, "Invalid name")
