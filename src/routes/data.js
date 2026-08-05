@@ -7,27 +7,26 @@ const logger = require("../utils/logger")
 const config = require("../utils/config")
 const db = require("../utils/db")
 
-// App OIDC: full trust, user logged into mailbaux directly
-function GetAppUserID(req) {
-	return req.isAuthenticated?.() ? req.user?.id : null
-}
+const {
+	RequireAppAuth,
+	RequireMailAuth,
+	RequireMailOrAppAuth,
+} = require("../router")
 
-// Mail OIDC: id from a validated id_token during the mailcow -> mailbaux -> authentik flow
-// Only allowed to read/select existing mailboxes
-function GetMailFlowUserID(req) {
-	return req.session?.mail?.id || null
-}
-
-function RequireAppAuth(req, res, next) {
-	if (res.locals.context !== "app") {
-		throw new HttpError(401, "App authentication required")
+function IsValideEmail(email) {
+	if (!email || typeof email !== "string") {
+		return false
 	}
 
-	if (!res.locals.user) {
-		throw new HttpError(404, "User not found")
-	}
+	const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-	next()
+	return regex.test(email)
+}
+
+function IsEmailAllowed(email) {
+	const [, domain] = email.split("@")
+
+	return micromatch.isMatch(domain, config.ALLOWED_EMAIL_DOMAINS)
 }
 
 function ValidateEmail(email) {
@@ -98,31 +97,18 @@ async function EnsureMailboxOwnershipAsync(user, email) {
 	return mailbox
 }
 
-// Loads user for either via app-flow or mail-flow context is present, app auth preferred
-router.use(async (req, res, next) => {
-	const appId = GetAppUserID(req)
-	const mailFlowId = GetMailFlowUserID(req)
-
-	const id = appId || mailFlowId
-
-	if (id) {
-		res.locals.id = id
-		res.locals.user = await db.GetUserByID(id)
-		res.locals.context = appId ? "app" : "mail"
-	}
-
-	next()
-})
-
 // Read-only (allowed for both)
-router.get("/mailbox", async (req, res, next) => {
+router.get("/mailbox", RequireMailOrAppAuth, async (req, res, next) => {
 	const user = res.locals.user
 
-	if (!user) {
-		throw new HttpError(401, "Not authenticated")
-	}
+	let mailboxes = user.mailboxes
 
-	return res.json(user)
+	if (res.locals.context.isMail)
+		mailboxes = mailboxes.filter(
+			(m) => IsValideEmail(m.email) && IsEmailAllowed(m.email),
+		)
+
+	return res.json(mailboxes)
 })
 
 // Modifcations require full app auth, never mail-flow
@@ -155,13 +141,9 @@ router.post("/mailbox/delete", RequireAppAuth, async (req, res, next) => {
 })
 
 // Select: allowed from mail-flow context
-router.post("/mailbox/select", async (req, res, next) => {
+router.post("/mailbox/select", RequireMailAuth, async (req, res, next) => {
 	const user = res.locals.user
 	const email = req.body?.email
-
-	if (!user) {
-		throw new HttpError(400, "Bad Request")
-	}
 
 	EmailAllowed(email)
 

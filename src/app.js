@@ -9,6 +9,8 @@ const { GetRedis } = require("./utils/db")
 const logger = require("./utils/logger")
 const config = require("./utils/config")
 
+const { router: rootRouter } = require("./router")
+
 const routes = require("./routes/routes")
 const dataRoutes = require("./routes/data")
 const oauthMailRoutes = require("./routes/oauth-mail")
@@ -16,7 +18,6 @@ const oauthApplicationRoutes = require("./routes/oauth-application")
 
 function CreateApp() {
 	const app = express()
-	const rootRouter = express.Router()
 
 	app.use(config.PREFIX, express.static("public"))
 
