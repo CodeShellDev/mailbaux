@@ -42,7 +42,7 @@ function ValidateEmail(email) {
 	}
 
 	if (!micromatch.isMatch(email, config.ALLOWED_EMAIL_DOMAINS)) {
-		throw new HttpError(400, "Invalid email")
+		throw new HttpError(400, "Email domain not allowed")
 	}
 }
 
