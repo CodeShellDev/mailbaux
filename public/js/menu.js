@@ -46,6 +46,10 @@ class PopupMenu {
 				if (!this.onSubmitClicked(e, data)) return
 			}
 
+			if (e.submitter.dataset["should-cancel-popup-menu"] !== "") {
+				return
+			}
+
 			const response = await fetch(this.endpoint, {
 				method: "POST",
 				headers: {
@@ -77,7 +81,7 @@ class PopupMenu {
 		return wrapper
 	}
 
-	renderAction({ label = null, name = "", ...custom }) {
+	renderAction({ label = null, name = "", cancel = false, ...custom }) {
 		const dataAttributes = Object.entries(custom)
 			.map(([key, value]) => `data-${key}="${value}"`)
 			.join(" ")
@@ -89,6 +93,7 @@ class PopupMenu {
 					name="${name}" 
 					id="${name}"
 					value="${label ?? ""}"
+					data-should-cancel-popup-menu="${cancel ? "1" : ""}"
 					${dataAttributes}
 				/>
 			</div>

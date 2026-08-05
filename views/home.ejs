@@ -104,11 +104,9 @@
 						name: "cancel",
 						type: "submit",
 						action: "no-danger",
+						cancel: true,
 					},
 				],
-				onSubmitClicked: (e, data) => {
-					return e?.submitter?.dataset?.cancel
-				},
 				onSubmit: async () => {
 					await mailboxGrid.update()
 				},
