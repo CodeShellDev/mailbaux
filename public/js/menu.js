@@ -7,7 +7,7 @@ class PopupMenu {
 		actions = [],
 		onSubmit = null,
 		onSubmitClicked = null,
-		showError: showErrors = true,
+		showErrors = true,
 	}) {
 		this.title = title
 		this.description = description
