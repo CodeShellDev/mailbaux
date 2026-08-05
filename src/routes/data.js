@@ -122,7 +122,14 @@ router.get("/mailbox", async (req, res, next) => {
 		throw new HttpError(401, "Not authenticated")
 	}
 
-	return res.json(user)
+	let mailboxes = user.mailboxes
+
+	if (res.locals.context === "mail")
+		mailboxes = mailboxes.filter(
+			(m) => ValidateEmail(m.email) && EmailAllowed(m.email),
+		)
+
+	return res.json(mailboxes)
 })
 
 // Modifcations require full app auth, never mail-flow
@@ -176,6 +183,21 @@ router.post("/mailbox/select", async (req, res, next) => {
 	return res.json({ url: `${config.PREFIX}/oauth/mail/mailbox` })
 })
 
+router.post("/mailbox/check/select", async (req, res, next) => {
+	const user = res.locals.user
+	const email = req.body?.email
+
+	if (!user) {
+		throw new HttpError(400, "Bad Request")
+	}
+
+	EmailAllowed(email)
+
+	await EnsureMailboxOwnershipAsync(user, email)
+
+	return res.sendStatus(200)
+})
+
 router.post("/mailbox/create", RequireAppAuth, async (req, res, next) => {
 	const email = req.body.email
 	const name = req.body.name
@@ -189,7 +211,7 @@ router.post("/mailbox/create", RequireAppAuth, async (req, res, next) => {
 	return res.sendStatus(200)
 })
 
-router.post("/mailbox/check", async (req, res, next) => {
+router.post("/mailbox/check/create", async (req, res, next) => {
 	const email = req.body.email
 	const name = req.body.name
 

@@ -108,9 +108,9 @@ class MailboxGrid {
 	async getMailboxes() {
 		const response = await fetch(this.endpoint)
 
-		const data = await response.json()
+		const result = await response.json()
 
-		return data.mailboxes
+		return result.mailboxes
 	}
 
 	render() {
