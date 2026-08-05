@@ -2,6 +2,7 @@ const express = require("express")
 const session = require("express-session")
 const passport = require("passport")
 const { RedisStore } = require("connect-redis")
+const { HttpError } = require("./types/errors")
 
 const { GetRedis } = require("./utils/db")
 
