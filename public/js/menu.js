@@ -20,6 +20,7 @@ class PopupMenu {
 		this.container = this.render()
 		this.overlay = null
 		this.showErrors = showErrors
+		this.precheckEndpoint = precheckEndpoint
 	}
 
 	async request(endpoint, data) {
@@ -49,7 +50,10 @@ class PopupMenu {
 	}
 
 	async validate() {
-		if (typeof str === "string" && str.trim().length > 0) {
+		if (
+			typeof this.precheckEndpoint === "string" &&
+			this.precheckEndpoint.trim().length > 0
+		) {
 			const data = Object.fromEntries(new FormData(e.target).entries())
 
 			await this.request(this.precheckEndpoint, data)
@@ -277,7 +281,10 @@ class Menu {
 	}
 
 	async validate() {
-		if (typeof str === "string" && str.trim().length > 0) {
+		if (
+			typeof this.precheckEndpoint === "string" &&
+			this.precheckEndpoint.trim().length > 0
+		) {
 			const data = Object.fromEntries(new FormData(e.target).entries())
 
 			await this.request(this.precheckEndpoint, data)
