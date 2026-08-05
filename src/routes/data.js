@@ -163,6 +163,8 @@ router.post("/mailbox/select", async (req, res, next) => {
 		throw new HttpError(400, "Bad Request")
 	}
 
+	EmailAllowed(email)
+
 	await EnsureMailboxOwnershipAsync(user, email)
 
 	if (!req.session.mail) {

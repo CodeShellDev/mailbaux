@@ -8,6 +8,7 @@ class PopupMenu {
 		onSubmit = null,
 		onSubmitClicked = null,
 		showErrors = true,
+		precheckEndpoint = null,
 	}) {
 		this.title = title
 		this.description = description
@@ -19,6 +20,38 @@ class PopupMenu {
 		this.container = this.render()
 		this.overlay = null
 		this.showErrors = showErrors
+	}
+
+	async request(endpoint, data) {
+		try {
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			})
+
+			const result = await response.json()
+
+			if (!response.ok) {
+				if (this.showErrors)
+					this.displayError(result?.error ?? "Something went wrong")
+
+				return
+			}
+		} catch (err) {
+			this.displayError("Could not connect to server")
+			console.error(err)
+		}
+	}
+
+	async validate() {
+		if (typeof str === "string" && str.trim().length > 0) {
+			const data = Object.fromEntries(new FormData(e.target).entries())
+
+			await this.request(this.precheckEndpoint, data)
+		}
 	}
 
 	render() {
@@ -41,7 +74,20 @@ class PopupMenu {
 
 		wrapper.innerHTML = html
 
-		wrapper.querySelector("form").addEventListener("submit", async (e) => {
+		const form = wrapper.querySelector("form")
+
+		const fields = [...form.querySelectorAll("input[required]")]
+		const lastField = fields.at(-1)
+
+		lastField.addEventListener("blur", async (e) => {
+			const allFilled = fields.every((input) => input.value.trim())
+
+			if (allFilled) {
+				await this.validate()
+			}
+		})
+
+		form.addEventListener("submit", async (e) => {
 			e.preventDefault()
 
 			this.clearError()
@@ -60,27 +106,7 @@ class PopupMenu {
 				return
 			}
 
-			try {
-				const response = await fetch(this.endpoint, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(data),
-				})
-
-				const result = await response.json()
-
-				if (!response.ok) {
-					if (this.showErrors)
-						this.displayError(result?.error ?? "Something went wrong")
-
-					return
-				}
-			} catch (err) {
-				this.displayError("Could not connect to server")
-				console.error(err)
-			}
+			await this.request(this.endpoint, data)
 
 			if (this.onSubmit) {
 				this.onSubmit(response)
@@ -207,6 +233,7 @@ class Menu {
 		onSubmit = null,
 		onSubmitClicked = null,
 		showErrors = true,
+		precheckEndpoint = null,
 	}) {
 		this.title = title
 		this.endpoint = endpoint
@@ -217,6 +244,39 @@ class Menu {
 		this.container = this.render()
 		this.overlay = null
 		this.showErrors = showErrors
+		this.precheckEndpoint = precheckEndpoint
+	}
+
+	async request(data, endpoint) {
+		try {
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			})
+
+			const result = await response.json()
+
+			if (!response.ok) {
+				if (this.showErrors)
+					this.displayError(result?.error ?? "Something went wrong")
+
+				return
+			}
+		} catch (err) {
+			this.displayError("Could not connect to server")
+			console.error(err)
+		}
+	}
+
+	async validate() {
+		if (typeof str === "string" && str.trim().length > 0) {
+			const data = Object.fromEntries(new FormData(e.target).entries())
+
+			await this.request(this.precheckEndpoint, data)
+		}
 	}
 
 	render() {
@@ -238,7 +298,20 @@ class Menu {
 
 		wrapper.innerHTML = html
 
-		wrapper.querySelector("form").addEventListener("submit", async (e) => {
+		const form = wrapper.querySelector("form")
+
+		const fields = [...form.querySelectorAll("input[required]")]
+		const lastField = fields.at(-1)
+
+		lastField.addEventListener("blur", async (e) => {
+			const allFilled = fields.every((input) => input.value.trim())
+
+			if (allFilled) {
+				await this.validate()
+			}
+		})
+
+		form.addEventListener("submit", async (e) => {
 			e.preventDefault()
 
 			const data = Object.fromEntries(new FormData(e.target).entries())
@@ -247,34 +320,10 @@ class Menu {
 				if (!this.onSubmitClicked(e, data)) return
 			}
 
-			try {
-				const response = await fetch(this.endpoint, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(data),
-				})
-
-				const result = await response.json()
-
-				if (!response.ok) {
-					if (this.showErrors)
-						this.displayError(result?.error ?? "Something went wrong")
-
-					return
-				}
-			} catch (err) {
-				this.displayError("Could not connect to server")
-				console.error(err)
-			}
+			await this.request(this.endpoint, data)
 
 			if (this.onSubmit) {
 				this.onSubmit(response)
-			}
-
-			if (this.onSubmit) {
-				this.onSubmit()
 			}
 
 			this.close()
