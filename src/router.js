@@ -26,6 +26,18 @@ function RequireAppAuth(req, res, next) {
 	next()
 }
 
+function RequireMailAuth(req, res, next) {
+	if (res.locals.context !== "mail") {
+		throw new HttpError(401, "Mail authentication required")
+	}
+
+	if (!res.locals.user) {
+		throw new HttpError(404, "User not found")
+	}
+
+	next()
+}
+
 // Loads user for either via app-flow or mail-flow context is present, app auth preferred
 router.use(async (req, res, next) => {
 	const appId = GetAppUserID(req)
@@ -46,3 +58,4 @@ module.exports.router = router
 module.exports.GetAppUserID = GetAppUserID
 module.exports.GetMailFlowUserID = GetMailFlowUserID
 module.exports.RequireAppAuth = RequireAppAuth
+module.exports.RequireMailAuth = RequireMailAuth

@@ -7,7 +7,7 @@ const logger = require("../utils/logger")
 const config = require("../utils/config")
 const db = require("../utils/db")
 
-const { RequireAppAuth } = require("../router")
+const { RequireAppAuth, RequireMailAuth } = require("../router")
 
 function ValidateEmail(email) {
 	if (!email || typeof email !== "string") {
@@ -125,13 +125,9 @@ router.post("/mailbox/delete", RequireAppAuth, async (req, res, next) => {
 })
 
 // Select: allowed from mail-flow context
-router.post("/mailbox/select", async (req, res, next) => {
+router.post("/mailbox/select", RequireMailAuth, async (req, res, next) => {
 	const user = res.locals.user
 	const email = req.body?.email
-
-	if (!user) {
-		throw new HttpError(400, "Bad Request")
-	}
 
 	EmailAllowed(email)
 
