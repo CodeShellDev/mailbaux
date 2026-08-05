@@ -1,3 +1,5 @@
+import { response } from "express"
+
 class PopupMenu {
 	constructor({
 		title = "",
@@ -40,9 +42,11 @@ class PopupMenu {
 
 				return
 			}
+			return response
 		} catch (err) {
 			this.displayError("Could not connect to server")
 			console.error(err)
+			return null
 		}
 	}
 
@@ -106,7 +110,7 @@ class PopupMenu {
 				return
 			}
 
-			await this.request(this.endpoint, data)
+			const response = await this.request(this.endpoint, data)
 
 			if (this.onSubmit) {
 				this.onSubmit(response)
@@ -265,9 +269,12 @@ class Menu {
 
 				return
 			}
+
+			return response
 		} catch (err) {
 			this.displayError("Could not connect to server")
 			console.error(err)
+			return null
 		}
 	}
 
@@ -320,7 +327,7 @@ class Menu {
 				if (!this.onSubmitClicked(e, data)) return
 			}
 
-			await this.request(this.endpoint, data)
+			const response = await this.request(this.endpoint, data)
 
 			if (this.onSubmit) {
 				this.onSubmit(response)
