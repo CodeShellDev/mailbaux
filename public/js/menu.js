@@ -48,7 +48,7 @@ class PopupMenu {
 
 			if (
 				e.submitter &&
-				Object.hasOwn(e.submitter.dataset, "should-cancel-popup-menu")
+				Object.hasOwn(e.submitter.dataset, "shouldCancelPopupMenu")
 			) {
 				this.close()
 				return
