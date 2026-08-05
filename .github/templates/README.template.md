@@ -1,4 +1,6 @@
-# Mailbaux
+<p align="center">
+    <img width="256" alt="Mailbaux Logo" src="https://github.com/codeshelldev/mailbaux/raw/refs/heads/main/logo/mailbaux.png">
+</p>
 
 Mailbaux is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
 
