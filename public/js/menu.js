@@ -34,7 +34,11 @@ class PopupMenu {
 				body: JSON.stringify(data),
 			})
 
-			const result = await response.json()
+			let result = null
+
+			if (response.headers.get("content-type")?.includes("application/json")) {
+				result = await response.json()
+			}
 
 			if (!response.ok) {
 				if (this.showErrors)
@@ -268,7 +272,11 @@ class Menu {
 				body: JSON.stringify(data),
 			})
 
-			const result = await response.json()
+			let result = null
+
+			if (response.headers.get("content-type")?.includes("application/json")) {
+				result = await response.json()
+			}
 
 			if (!response.ok) {
 				if (this.showErrors)
