@@ -321,6 +321,8 @@ class Menu {
 		form.addEventListener("submit", async (e) => {
 			e.preventDefault()
 
+			this.clearError()
+
 			const data = Object.fromEntries(new FormData(e.target).entries())
 
 			if (this.onSubmitClicked) {
