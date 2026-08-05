@@ -27,8 +27,8 @@ class PopupMenu {
 
 		const html = `
         <h3>${this.title}</h3>
-        <hr />
 		<p>${this.description}</p>
+        <hr />
 		<span class="form-error" hidden></span>
 		<br />
         <form method="post" action="${this.endpoint}">

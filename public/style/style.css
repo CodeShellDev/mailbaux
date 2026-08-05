@@ -378,8 +378,22 @@ input[type="text"]:focus {
 }
 
 .form-error {
+	display: block;
+	margin: 0.75rem 0;
+	padding: 0.5rem 0.75rem;
+
 	color: var(--cancel-btn-color);
+	background: color-mix(in srgb, var(--cancel-btn-color) 10%, transparent);
+	border-left: 3px solid var(--cancel-btn-color);
+	border-radius: 4px;
+
 	font-size: 0.9rem;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+.form-error:empty {
+	display: none;
 }
 
 .form-actions {
