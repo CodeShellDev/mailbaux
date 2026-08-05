@@ -78,7 +78,7 @@ define("MAIL_CLIENT_SECRET", { required: true })
 // DB
 
 define("DB_HOST", { required: true })
-define("DB_NAME", { default: "mailauth" })
+define("DB_NAME", { default: "mailbaux" })
 define("DB_USER", { required: true })
 define("DB_PASSWORD", { required: true })
 

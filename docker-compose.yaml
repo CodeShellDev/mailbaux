@@ -1,13 +1,13 @@
 services:
-  mailauth:
-    image: ghcr.io/codeshelldev/mailauth:latest
-    container_name: mailauth
+  mailbaux:
+    image: ghcr.io/codeshelldev/mailbaux:latest
+    container_name: mailbaux
     ports:
       - "8070:8070"
     environment:
       DB_HOST: ${DB_HOST:-mongo:27017}
       DB_USER: ${DB_USER:-admin}
-      DB_NAME: ${DB_NAME:-mailauth}
+      DB_NAME: ${DB_NAME:-mailbaux}
       REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
@@ -16,31 +16,31 @@ services:
       - redis
     restart: unless-stopped
     networks:
-      - mailauth
+      - mailbaux
 
   mongo:
     image: mongo:7
-    container_name: mailauth-db
+    container_name: mailbaux-db
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${DB_NAME:-mailauth}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-mailbaux}
     volumes:
       - db:/data/db
     networks:
-      - mailauth
+      - mailbaux
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: mailauth-redis
+    container_name: mailbaux-redis
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     networks:
-      - mailauth
+      - mailbaux
     restart: unless-stopped
 
 networks:
-  mailauth:
+  mailbaux:
 
 volumes:
   db:

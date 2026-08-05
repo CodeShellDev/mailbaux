@@ -1,14 +1,14 @@
-# Mailauth
+# Mailbaux
 
-Mailauth is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
+Mailbaux is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
 
-Mailauth acts as an OAuth2 relay between your mail server and your IdP.
+Mailbaux acts as an OAuth2 relay between your mail server and your IdP.
 
 Supported mail servers include solutions such as [mailcow](https://github.com/mailcow/mailcow-dockerized).
 
 ## Screenshots
 
-![mailauth-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
+![mailbaux-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
 
 # Getting Started
 
@@ -22,29 +22,29 @@ Get the latest version of the `docker-compose.yaml` file:
 
 ## Setup
 
-Mailauth requires two separate OAuth2 clients because it is involved in two different OAuth2 flows.
+Mailbaux requires two separate OAuth2 clients because it is involved in two different OAuth2 flows.
 
 The first OAuth client is created for the mail server in your IdP.
-It allows the mail server to authenticate users through Mailauth.
-During this flow, Mailauth authenticates the user with your IdP, allows the user to select a mailbox, modifies the `email` claim, and returns the result to the mail server.
+It allows the mail server to authenticate users through Mailbaux.
+During this flow, Mailbaux authenticates the user with your IdP, allows the user to select a mailbox, modifies the `email` claim, and returns the result to the mail server.
 
-The second client is used by Mailauth itself. This allows users to log into the Mailauth interface through your IdP, where they can manage their configured mailboxes.
+The second client is used by Mailbaux itself. This allows users to log into the Mailbaux interface through your IdP, where they can manage their configured mailboxes.
 
-Mailauth uses two OAuth2 flows:
+Mailbaux uses two OAuth2 flows:
 
 1. **Mail server authentication**
-   - Your mail server redirects the user to Mailauth
-   - Mailauth redirects the user to your IdP
+   - Your mail server redirects the user to Mailbaux
+   - Mailbaux redirects the user to your IdP
    - The IdP authenticates the user
-   - Mailauth receives the user information
+   - Mailbaux receives the user information
    - The user selects their mailbox.
-   - Mailauth modifies the `email` claim and completes the OAuth flow with the mail server
+   - Mailbaux modifies the `email` claim and completes the OAuth flow with the mail server
 
-2. **Mailauth interface authentication**
-   - The user opens Mailauth directly
-   - Mailauth verifies the user's identity with your IdP
+2. **Mailbaux interface authentication**
+   - The user opens Mailbaux directly
+   - Mailbaux verifies the user's identity with your IdP
    - The IdP authenticates the user
-   - Mailauth creates a session and allows the user to manage their mailboxes
+   - Mailbaux creates a session and allows the user to manage their mailboxes
 
 The general flow:
 
@@ -53,18 +53,18 @@ flowchart LR
     User[User]
 
     Mail[Mail Server<br/>OAuth Client]
-    Mailauth[Mailauth<br/>OAuth Relay]
+    Mailbaux[Mailbaux<br/>OAuth Relay]
     IdP[Identity Provider<br/>authentik, etc.]
 
     User -->|Login| Mail
-    Mail -->|OAuth Request| Mailauth
-    Mailauth -->|Select mailbox<br/>Modify email claim| Mail
+    Mail -->|OAuth Request| Mailbaux
+    Mailbaux -->|Select mailbox<br/>Modify email claim| Mail
 
-    User -->|Open interface| Mailauth
+    User -->|Open interface| Mailbaux
 
-    Mailauth -->|Redirect Login| IdP
-    Mailauth -->|Verify Identity| IdP
-    IdP -->|User Information| Mailauth
+    Mailbaux -->|Redirect Login| IdP
+    Mailbaux -->|Verify Identity| IdP
+    IdP -->|User Information| Mailbaux
 ```
 
 ### Configuration
@@ -85,7 +85,7 @@ Copy the example:
 
 #### Storage
 
-Mailauth requires MongoDB and Redis.
+Mailbaux requires MongoDB and Redis.
 
 Generate secure passwords:
 
@@ -126,29 +126,29 @@ An example Traefik setup:
 
 ## Usage
 
-When authenticating through Mailauth:
+When authenticating through Mailbaux:
 
 1. The user starts the login process from the mail server
-2. The mail server redirects the user to Mailauth
-3. Mailauth redirects the user to the configured IdP
+2. The mail server redirects the user to Mailbaux
+3. Mailbaux redirects the user to the configured IdP
 4. The user authenticates with the IdP
-5. Mailauth receives the user information and shows mailbox selection
+5. Mailbaux receives the user information and shows mailbox selection
 6. The user selects their mailbox
-7. Mailauth modifies the `email` claim and completes the OAuth flow
+7. Mailbaux modifies the `email` claim and completes the OAuth flow
 
 The mail server now sees the selected mailbox as the authenticated identity.
 
 ## Contributing
 
-Found a bug or have an idea for improving Mailauth?
+Found a bug or have an idea for improving Mailbaux?
 
 Feel free to open an issue or submit a pull request.
 
-Please be respectful and patient when contributing. Mailauth is maintained by volunteers.
+Please be respectful and patient when contributing. Mailbaux is maintained by volunteers.
 
 ## Supporting
 
-If you find Mailauth useful, consider giving the repository a ⭐ to help others discover it.
+If you find Mailbaux useful, consider giving the repository a ⭐ to help others discover it.
 
 ## License
 

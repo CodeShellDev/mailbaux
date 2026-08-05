@@ -99,7 +99,7 @@ router.get("/authorize", async (req, res, next) => {
 			)
 			.join("&")
 
-		// mailcow starts this flow cross-domain (its own origin -> mailauth -> authentik)
+		// mailcow starts this flow cross-domain (its own origin -> mailbaux -> authentik)
 		// We still need to know which mailcow host to route the callback back to.
 		// The caller must also be a known configured host, matched against MAIL_REDIRECT_URIS
 		const referer = req.get("Referer")

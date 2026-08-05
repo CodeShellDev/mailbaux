@@ -5,12 +5,12 @@ const logger = require("../logger")
 const config = require("../config")
 const db = require("../db")
 
-// App OIDC: full trust, user logged into mailauth directly
+// App OIDC: full trust, user logged into mailbaux directly
 function GetAppUserID(req) {
 	return req.isAuthenticated?.() ? req.user?.id : null
 }
 
-// Mail OIDC: id from a validated id_token during the mailcow -> mailauth -> authentik flow
+// Mail OIDC: id from a validated id_token during the mailcow -> mailbaux -> authentik flow
 // Only allowed to read/select existing mailboxes
 function GetMailFlowUserID(req) {
 	return req.session?.mail?.id || null

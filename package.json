@@ -1,14 +1,14 @@
 {
-	"name": "mailauth",
+	"name": "mailbaux",
 	"version": "none",
 	"description": "",
-	"homepage": "https://github.com/CodeShellDev/mailauth#readme",
+	"homepage": "https://github.com/CodeShellDev/mailbaux#readme",
 	"bugs": {
-		"url": "https://github.com/CodeShellDev/mailauth/issues"
+		"url": "https://github.com/CodeShellDev/mailbaux/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/CodeShellDev/mailauth.git"
+		"url": "git+https://github.com/CodeShellDev/mailbaux.git"
 	},
 	"license": "MIT",
 	"author": "codeshelldev",
