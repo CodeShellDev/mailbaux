@@ -168,3 +168,9 @@ If you find Mailbaux useful, consider giving the repository a ⭐ to help others
 ## License
 
 This Project is licensed under the [MIT License](./LICENSE).
+
+## Legal
+
+Logo designed by @CodeShellDev, All Rights Reserved.
+
+This project is not affiliated with mailcow nor authentik.
