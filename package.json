@@ -25,6 +25,7 @@
 		"express": "^5.1.0",
 		"express-session": "^1.18.1",
 		"jsonwebtoken": "^9.0.2",
+		"micromatch": "^4.0.8",
 		"mongo": "^0.1.0",
 		"passport": "^0.7.0",
 		"passport-openidconnect": "^0.1.2",

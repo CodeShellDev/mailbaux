@@ -2,11 +2,11 @@ const express = require("express")
 const router = express.Router()
 const crypto = require("crypto")
 
-const { DecodeToken, SignToken } = require("../token")
+const { DecodeToken, SignToken } = require("../utils/token")
 
-const logger = require("../logger")
-const config = require("../config")
-const db = require("../db")
+const logger = require("../utils/logger")
+const config = require("../utils/config")
+const db = require("../utils/db")
 
 const { parse: ParseUrl } = require("tldts")
 

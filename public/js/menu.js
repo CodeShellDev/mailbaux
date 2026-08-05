@@ -7,6 +7,8 @@ class PopupMenu {
 		actions = [],
 		onSubmit = null,
 		onSubmitClicked = null,
+		showErrors = true,
+		precheckEndpoint = null,
 	}) {
 		this.title = title
 		this.description = description
@@ -17,6 +19,55 @@ class PopupMenu {
 		this.onSubmitClicked = onSubmitClicked
 		this.container = this.render()
 		this.overlay = null
+		this.showErrors = showErrors
+		this.precheckEndpoint = precheckEndpoint
+		this.form = null
+	}
+
+	async request(endpoint, data) {
+		try {
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			})
+
+			let result = null
+
+			if (response.headers.get("content-type")?.includes("application/json")) {
+				result = await response.json()
+			}
+
+			if (!response.ok) {
+				if (this.showErrors)
+					this.displayError(result?.error ?? "Something went wrong")
+
+				return { success: false, error: result?.error }
+			}
+
+			return { success: true, response, data: result }
+		} catch (err) {
+			this.displayError("Could not connect to server")
+			console.error(err)
+			return { success: false, error: "Network error" }
+		}
+	}
+
+	async validate() {
+		if (
+			typeof this.precheckEndpoint === "string" &&
+			this.precheckEndpoint.trim().length > 0
+		) {
+			const data = Object.fromEntries(new FormData(this.form).entries())
+
+			await this.request(this.precheckEndpoint, data)
+		}
+	}
+
+	async onInput() {
+		this.clearError()
 	}
 
 	render() {
@@ -26,7 +77,9 @@ class PopupMenu {
 		const html = `
         <h3>${this.title}</h3>
 		<p>${this.description}</p>
-        <br />
+        <hr />
+		<span class="form-error" hidden></span>
+		<br />
         <form method="post" action="${this.endpoint}">
         	${this.fields.map((field) => this.renderField(field)).join("")}
 			<div class="form-actions">
@@ -37,8 +90,27 @@ class PopupMenu {
 
 		wrapper.innerHTML = html
 
-		wrapper.querySelector("form").addEventListener("submit", async (e) => {
+		this.form = wrapper.querySelector("form")
+
+		const fields = [...this.form.querySelectorAll("input[required]")]
+		const lastField = fields.at(-1)
+
+		lastField.addEventListener("blur", async (e) => {
+			const allFilled = fields.every((input) => input.value.trim())
+
+			if (allFilled) {
+				await this.validate()
+			}
+		})
+
+		this.form.addEventListener("input", async (e) => {
+			await this.onInput()
+		})
+
+		this.form.addEventListener("submit", async (e) => {
 			e.preventDefault()
+
+			this.clearError()
 
 			const data = Object.fromEntries(new FormData(e.target).entries())
 
@@ -54,21 +126,15 @@ class PopupMenu {
 				return
 			}
 
-			const response = await fetch(this.endpoint, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(data),
-			})
+			const response = await this.request(this.endpoint, data)
 
-			if (response.status === 200) {
-				if (this.onSubmit) {
-					this.onSubmit(response)
-				}
+			if (!response.success) return
 
-				this.close()
+			if (this.onSubmit) {
+				this.onSubmit(response)
 			}
+
+			this.close()
 		})
 
 		return wrapper
@@ -135,6 +201,20 @@ class PopupMenu {
 		`
 	}
 
+	displayError(message) {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = message
+		errorElement.classList.add("visible")
+	}
+
+	clearError() {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = ""
+		errorElement.classList.remove("visible")
+	}
+
 	open(overwrites = []) {
 		const fields = structuredClone(this.fields)
 
@@ -174,6 +254,8 @@ class Menu {
 		actions = [{ label: "Submit", name: "submit" }],
 		onSubmit = null,
 		onSubmitClicked = null,
+		showErrors = true,
+		precheckEndpoint = null,
 	}) {
 		this.title = title
 		this.endpoint = endpoint
@@ -183,6 +265,55 @@ class Menu {
 		this.onSubmitClicked = onSubmitClicked
 		this.container = this.render()
 		this.overlay = null
+		this.showErrors = showErrors
+		this.precheckEndpoint = precheckEndpoint
+		this.form = null
+	}
+
+	async request(endpoint, data) {
+		try {
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			})
+
+			let result = null
+
+			if (response.headers.get("content-type")?.includes("application/json")) {
+				result = await response.json()
+			}
+
+			if (!response.ok) {
+				if (this.showErrors)
+					this.displayError(result?.error ?? "Something went wrong")
+
+				return { success: false, error: result?.error }
+			}
+
+			return { success: true, response, data: result }
+		} catch (err) {
+			this.displayError("Could not connect to server")
+			console.error(err)
+			return { success: false, error: "Network error" }
+		}
+	}
+
+	async validate() {
+		if (
+			typeof this.precheckEndpoint === "string" &&
+			this.precheckEndpoint.trim().length > 0
+		) {
+			const data = Object.fromEntries(new FormData(this.form).entries())
+
+			await this.request(this.precheckEndpoint, data)
+		}
+	}
+
+	async onInput() {
+		this.clearError()
 	}
 
 	render() {
@@ -191,7 +322,9 @@ class Menu {
 
 		const html = `
         <h3>${this.title}</h3>
-        <hr /><br />
+        <hr />
+		<span class="form-error" hidden></span>
+		<br />
         <form method="post" action="${this.endpoint}">
         	${this.fields.map((field) => this.renderField(field)).join("")}
 			<div class="form-actions">
@@ -202,8 +335,27 @@ class Menu {
 
 		wrapper.innerHTML = html
 
-		wrapper.querySelector("form").addEventListener("submit", async (e) => {
+		this.form = wrapper.querySelector("form")
+
+		const fields = [...this.form.querySelectorAll("input[required]")]
+		const lastField = fields.at(-1)
+
+		lastField.addEventListener("blur", async (e) => {
+			const allFilled = fields.every((input) => input.value.trim())
+
+			if (allFilled) {
+				await this.validate()
+			}
+		})
+
+		this.form.addEventListener("input", async (e) => {
+			await this.onInput()
+		})
+
+		this.form.addEventListener("submit", async (e) => {
 			e.preventDefault()
+
+			this.clearError()
 
 			const data = Object.fromEntries(new FormData(e.target).entries())
 
@@ -211,21 +363,15 @@ class Menu {
 				if (!this.onSubmitClicked(e, data)) return
 			}
 
-			const response = await fetch(this.endpoint, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(data),
-			})
+			const response = await this.request(this.endpoint, data)
 
-			if (response.status === 200) {
-				if (this.onSubmit) {
-					this.onSubmit()
-				}
+			if (!response.success) return
 
-				this.close()
+			if (this.onSubmit) {
+				this.onSubmit(response)
 			}
+
+			this.close()
 		})
 
 		return wrapper
@@ -289,6 +435,20 @@ class Menu {
 				/>
 			</div>
 		`
+	}
+
+	displayError(message) {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = message
+		errorElement.classList.add("visible")
+	}
+
+	clearError() {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = ""
+		errorElement.classList.remove("visible")
 	}
 
 	open(overwrites = []) {
