@@ -185,6 +185,11 @@ REDIS_HOST=redis:6379
 APP_REDIRECT_PATH=/oauth/app/callback
 
 PREFIX=/
+
+# Supports glob-like patterns separated by a comma.
+# (See https://github.com/micromatch/micromatch#matching-features)
+# Example: domain.com,example.*,*.com
+ALLOWED_EMAIL_DOMAINS=*
 ```
 
 #### Storage
