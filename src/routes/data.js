@@ -87,7 +87,7 @@ router.get("/mailbox", RequireMailOrAppAuth, async (req, res, next) => {
 
 	let mailboxes = user.mailboxes
 
-	if (res.locals.context === "mail")
+	if (res.locals.context.isMail)
 		mailboxes = mailboxes.filter(
 			(m) => ValidateEmail(m.email) && EmailAllowed(m.email),
 		)
