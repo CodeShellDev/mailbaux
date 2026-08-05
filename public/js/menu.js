@@ -82,6 +82,7 @@ class PopupMenu {
 					type="submit"
 					name="${name}" 
 					id="${name}"
+					value="${label ?? ""}"
 					${dataAttributes}
 				/>
 			</div>
@@ -120,29 +121,26 @@ class PopupMenu {
 	}
 
 	open(overwrites = []) {
-		const fields = this.fields
+		const fields = structuredClone(this.fields)
 
 		overwrites.forEach((overwrite) => {
 			for (let fieldI = 0; fieldI < fields.length; fieldI++) {
 				const field = fields[fieldI]
 
 				if (field.name === overwrite.name) {
-					for (const [_k, _v] of Object.entries(field)) {
-						for (const [key, value] of Object.entries(overwrite)) {
-							this.fields[fieldI][key] = value
-						}
+					for (const [key, value] of Object.entries(overwrite)) {
+						fields[fieldI][key] = value
 					}
 				}
 			}
 		})
 
+		this.fields = fields
+
 		this.container = this.render()
 
 		document.body.appendChild(this.overlay)
-
 		document.body.appendChild(this.container)
-
-		this.fields = fields
 	}
 
 	close() {
@@ -233,6 +231,7 @@ class Menu {
 					type="submit"
 					name="${name}" 
 					id="${name}"
+					value="${label ?? ""}"
 					${dataAttributes}
 				/>
 			</div>
@@ -271,29 +270,26 @@ class Menu {
 	}
 
 	open(overwrites = []) {
-		const fields = this.fields
+		const fields = structuredClone(this.fields)
 
 		overwrites.forEach((overwrite) => {
 			for (let fieldI = 0; fieldI < fields.length; fieldI++) {
 				const field = fields[fieldI]
 
 				if (field.name === overwrite.name) {
-					for (const [_k, _v] of Object.entries(field)) {
-						for (const [key, value] of Object.entries(overwrite)) {
-							this.fields[fieldI][key] = value
-						}
+					for (const [key, value] of Object.entries(overwrite)) {
+						fields[fieldI][key] = value
 					}
 				}
 			}
 		})
 
+		this.fields = fields
+
 		this.container = this.render()
 
 		document.body.appendChild(this.overlay)
-
 		document.body.appendChild(this.container)
-
-		this.fields = fields
 	}
 
 	close() {

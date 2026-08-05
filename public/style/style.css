@@ -309,6 +309,7 @@ input[type="text"]:focus {
 	width: 22px;
 	height: 22px;
 }
+
 .menu,
 .popup-menu {
 	position: fixed;
@@ -330,10 +331,12 @@ input[type="text"]:focus {
 	z-index: 100;
 }
 
-.menu,
+.menu {
+	width: min(700px, 90vw);
+}
+
 .popup-menu {
-	max-height: 90vh;
-	overflow-y: auto;
+	width: min(400px, 90vw);
 }
 
 .menu,
