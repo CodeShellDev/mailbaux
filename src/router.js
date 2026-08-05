@@ -15,7 +15,7 @@ function GetMailFlowUserID(req) {
 }
 
 function RequireAppAuth(req, res, next) {
-	if (res.locals.context !== "app") {
+	if (!res.locals.context.isApp) {
 		throw new HttpError(401, "App authentication required")
 	}
 
@@ -27,8 +27,20 @@ function RequireAppAuth(req, res, next) {
 }
 
 function RequireMailAuth(req, res, next) {
-	if (res.locals.context !== "mail") {
+	if (!res.locals.context.isMail) {
 		throw new HttpError(401, "Mail authentication required")
+	}
+
+	if (!res.locals.user) {
+		throw new HttpError(404, "User not found")
+	}
+
+	next()
+}
+
+function RequireMailOrAppAuth(req, res, next) {
+	if (!res.locals.context.isMail && !res.locals.context.isApp) {
+		throw new HttpError(401, "Mail or App authentication required")
 	}
 
 	if (!res.locals.user) {
@@ -43,12 +55,16 @@ router.use(async (req, res, next) => {
 	const appId = GetAppUserID(req)
 	const mailFlowId = GetMailFlowUserID(req)
 
+	res.locals.context = {
+		isApp: appId != null,
+		isMail: mailFlowId != null,
+	}
+
 	const id = appId || mailFlowId
 
 	if (id) {
 		res.locals.id = id
 		res.locals.user = await db.GetUserByID(id)
-		res.locals.context = appId ? "app" : "mail"
 	}
 
 	next()
@@ -59,3 +75,4 @@ module.exports.GetAppUserID = GetAppUserID
 module.exports.GetMailFlowUserID = GetMailFlowUserID
 module.exports.RequireAppAuth = RequireAppAuth
 module.exports.RequireMailAuth = RequireMailAuth
+module.exports.RequireMailOrAppAuth = RequireMailOrAppAuth

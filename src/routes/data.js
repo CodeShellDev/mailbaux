@@ -7,7 +7,11 @@ const logger = require("../utils/logger")
 const config = require("../utils/config")
 const db = require("../utils/db")
 
-const { RequireAppAuth, RequireMailAuth } = require("../router")
+const {
+	RequireAppAuth,
+	RequireMailAuth,
+	RequireMailOrAppAuth,
+} = require("../router")
 
 function ValidateEmail(email) {
 	if (!email || typeof email !== "string") {
@@ -78,12 +82,8 @@ async function EnsureMailboxOwnershipAsync(user, email) {
 }
 
 // Read-only (allowed for both)
-router.get("/mailbox", async (req, res, next) => {
+router.get("/mailbox", RequireMailOrAppAuth, async (req, res, next) => {
 	const user = res.locals.user
-
-	if (!user) {
-		throw new HttpError(401, "Not authenticated")
-	}
 
 	let mailboxes = user.mailboxes
 
