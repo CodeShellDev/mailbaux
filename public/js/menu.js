@@ -331,6 +331,20 @@ class Menu {
 		`
 	}
 
+	displayError(message) {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = message
+		errorElement.hidden = false
+	}
+
+	clearError() {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = ""
+		errorElement.hidden = true
+	}
+
 	open(overwrites = []) {
 		const fields = structuredClone(this.fields)
 
