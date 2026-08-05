@@ -152,14 +152,14 @@ class PopupMenu {
 		const errorElement = this.container.querySelector(".form-error")
 
 		errorElement.textContent = message
-		errorElement.hidden = false
+		errorElement.classList.add("visible")
 	}
 
 	clearError() {
 		const errorElement = this.container.querySelector(".form-error")
 
 		errorElement.textContent = ""
-		errorElement.hidden = true
+		errorElement.classList.remove("visible")
 	}
 
 	open(overwrites = []) {
@@ -337,14 +337,14 @@ class Menu {
 		const errorElement = this.container.querySelector(".form-error")
 
 		errorElement.textContent = message
-		errorElement.hidden = false
+		errorElement.classList.add("visible")
 	}
 
 	clearError() {
 		const errorElement = this.container.querySelector(".form-error")
 
 		errorElement.textContent = ""
-		errorElement.hidden = true
+		errorElement.classList.remove("visible")
 	}
 
 	open(overwrites = []) {
