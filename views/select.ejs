@@ -33,10 +33,10 @@
 					body: JSON.stringify({ email: email }),
 				})
 
-				const data = await response.json()
+				const result = await response.json()
 
 				if (response.status !== 500) {
-					window.location.href = data.url
+					window.location.href = result.url
 				}
 			}
 

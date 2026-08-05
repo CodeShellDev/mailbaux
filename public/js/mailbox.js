@@ -110,7 +110,7 @@ class MailboxGrid {
 
 		const result = await response.json()
 
-		return result.mailboxes
+		return result
 	}
 
 	render() {
