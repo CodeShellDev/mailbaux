@@ -384,8 +384,6 @@ input[type="text"]:focus {
 
 	margin-top: 12px;
 	padding-top: 12px;
-
-	border-top: 1px solid var(--border-color);
 }
 
 .form-actions input[type="submit"],

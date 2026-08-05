@@ -28,8 +28,9 @@ class PopupMenu {
 		const html = `
         <h3>${this.title}</h3>
 		<p>${this.description}</p>
-        <br />
+        <hr />
 		<span class="form-error" hidden></span>
+		<br />
         <form method="post" action="${this.endpoint}">
         	${this.fields.map((field) => this.renderField(field)).join("")}
 			<div class="form-actions">
@@ -219,8 +220,9 @@ class Menu {
 
 		const html = `
         <h3>${this.title}</h3>
-        <hr /><br />
+        <hr />
 		<span class="form-error" hidden></span>
+		<br />
         <form method="post" action="${this.endpoint}">
         	${this.fields.map((field) => this.renderField(field)).join("")}
 			<div class="form-actions">
