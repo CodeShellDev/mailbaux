@@ -12,11 +12,26 @@ Supported mail servers include solutions such as [mailcow](https://github.com/ma
 
 ## Screenshots
 
-<p align="center">
-   <img width="512" alt="Mailbaux Home" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/home.webp">
-   <img width="512" alt="Mailbaux Select Flow" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/select-flow.webp">
-   <img width="512" alt="Mailbaux Edit/Create/Delete Menus" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/edit-create-delete.webp">
-</p>
+<table>
+  <tr>
+    <td><strong>Home</strong></td>
+    <td>
+      <img width="512" alt="Mailbaux Home" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/home.webp">
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Select Flow</strong></td>
+    <td>
+      <img width="512" alt="Mailbaux Select Flow" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/select-flow.webp">
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Edit / Create / Delete</strong></td>
+    <td>
+      <img width="512" alt="Mailbaux Edit/Create/Delete Menus" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/edit-create-delete.webp">
+    </td>
+  </tr>
+</table>
 
 ## Getting Started
 
