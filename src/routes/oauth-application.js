@@ -1,7 +1,7 @@
 const router = require("express").Router()
 
-const config = require("../config")
-const logger = require("../logger")
+const config = require("../utils/config")
+const logger = require("../utils/logger")
 
 const passport = require("passport")
 const OpenIDConnectStrategy = require("passport-openidconnect").Strategy

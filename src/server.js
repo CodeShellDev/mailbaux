@@ -1,5 +1,5 @@
-const logger = require("./logger")
-const db = require("./db")
+const logger = require("./utils/logger")
+const db = require("./utils/db")
 const docker = require("./docker")
 const CreateApp = require("./app")
 

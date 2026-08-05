@@ -3,10 +3,10 @@ const session = require("express-session")
 const passport = require("passport")
 const { RedisStore } = require("connect-redis")
 
-const { GetRedis } = require("./db")
+const { GetRedis } = require("./utils/db")
 
-const logger = require("./logger")
-const config = require("./config")
+const logger = require("./utils/logger")
+const config = require("./utils/config")
 
 const routes = require("./routes/routes")
 const dataRoutes = require("./routes/data")
@@ -75,6 +75,20 @@ function CreateApp() {
 	})
 
 	app.use(config.PREFIX, rootRouter)
+
+	app.use((req, res) => {
+		res.status(404).json({ error: "Not found" })
+	})
+
+	app.use((err, req, res, next) => {
+		if (err instanceof HttpError) {
+			return res.status(err.status).json({ error: err.message })
+		}
+
+		logger.err(err)
+
+		res.status(500).json({ error: "Internal server error" })
+	})
 
 	return app
 }

@@ -1,9 +1,11 @@
 const express = require("express")
 const router = express.Router()
+const { HttpError } = require("../types/errors")
+const micromatch = require("micromatch")
 
-const logger = require("../logger")
-const config = require("../config")
-const db = require("../db")
+const logger = require("../utils/logger")
+const config = require("../utils/config")
+const db = require("../utils/db")
 
 // App OIDC: full trust, user logged into mailbaux directly
 function GetAppUserID(req) {
@@ -17,13 +19,77 @@ function GetMailFlowUserID(req) {
 }
 
 function RequireAppAuth(req, res, next) {
-	const id = GetAppUserID(req)
+	if (res.locals.context !== "app") {
+		throw new HttpError(401, "App authentication required")
+	}
 
-	if (!id) {
-		return res.status(401).json({ error: "App authentication required" })
+	if (!res.locals.user) {
+		throw new HttpError(404, "User not found")
 	}
 
 	next()
+}
+
+function ValidateEmail(email) {
+	if (!email || typeof email !== "string") {
+		throw new HttpError(400, "Invalid email")
+	}
+
+	const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+	if (!regex.test(email)) {
+		throw new HttpError(400, "Invalid email")
+	}
+
+	if (!micromatch.isMatch(email, config.ALLOWED_EMAIL_DOMAINS)) {
+		throw new HttpError(400, "Invalid email")
+	}
+}
+
+async function ValidateMailbox(email, name) {
+	ValidateEmail(email)
+
+	if (!name || typeof name !== "string") {
+		throw new HttpError(400, "Invalid name")
+	}
+
+	const existing = await db.FindBy({ "mailboxes.email": email })
+
+	if (existing) {
+		throw new HttpError(409, "Mailbox already claimed")
+	}
+}
+
+async function EnsureNotMailbox(email) {
+	ValidateEmail(email)
+
+	const mailbox = await db.FindBy({ "mailboxes.email": email })
+
+	if (mailbox) {
+		throw new HttpError(409, "Mailbox already claimed")
+	}
+}
+
+async function EnsureMailbox(email) {
+	ValidateEmail(email)
+
+	const mailbox = await db.FindBy({ "mailboxes.email": email })
+
+	if (!mailbox) {
+		throw new HttpError(404, "Mailbox does not exist")
+	}
+
+	return mailbox
+}
+
+async function EnsureMailboxOwnership(user, email) {
+	const mailbox = await EnsureMailbox(email)
+
+	if (mailbox.id !== user.id) {
+		throw new HttpError(403, "Not your mailbox")
+	}
+
+	return mailbox
 }
 
 // Loads user for either via app-flow or mail-flow context is present, app auth preferred
@@ -47,7 +113,7 @@ router.get("/mailbox", async (req, res, next) => {
 	const user = res.locals.user
 
 	if (!user) {
-		return res.status(401).json({ error: "Not authenticated" })
+		throw new HttpError(401, "Not authenticated")
 	}
 
 	return res.json(user)
@@ -56,15 +122,12 @@ router.get("/mailbox", async (req, res, next) => {
 // Modifcations require full app auth, never mail-flow
 router.post("/mailbox/edit", RequireAppAuth, async (req, res, next) => {
 	const user = res.locals.user
-	const mailbox = req.body.email
+	const email = req.body.email
 
-	if (!user) return res.status(404).json({ error: "User not found" })
-
-	const owned = user.mailboxes.some((m) => m.email === mailbox)
-	if (!owned) return res.status(403).json({ error: "Not your mailbox" })
+	EnsureMailboxOwnership(user, email)
 
 	await db.UpdateBy(
-		{ id: res.locals.id, "mailboxes.email": mailbox },
+		{ id: res.locals.id, "mailboxes.email": email },
 		{ "mailboxes.$.name": req.body.name },
 	)
 
@@ -73,40 +136,14 @@ router.post("/mailbox/edit", RequireAppAuth, async (req, res, next) => {
 
 router.post("/mailbox/delete", RequireAppAuth, async (req, res, next) => {
 	const user = res.locals.user
-	const mailbox = req.body.email
+	const email = req.body.email
 
-	if (!user) return res.status(404).json({ error: "User not found" })
-
-	const owned = user.mailboxes.some((m) => m.email === mailbox)
-	if (!owned) return res.status(403).json({ error: "Not your mailbox" })
+	EnsureMailboxOwnership(user, email)
 
 	await db.DeleteFromArrayBy(
 		{ id: res.locals.id },
-		{ mailboxes: { email: mailbox } },
+		{ mailboxes: { email: email } },
 	)
-
-	return res.sendStatus(200)
-})
-
-router.post("/mailbox/create", RequireAppAuth, async (req, res, next) => {
-	const email = req.body.email
-	const name = req.body.name
-
-	if (!email || typeof email !== "string") {
-		return res.status(400).json({ error: "Invalid email" })
-	}
-
-	if (!name || typeof name !== "string") {
-		return res.status(400).json({ error: "Invalid name" })
-	}
-
-	const existing = await db.FindBy({ "mailboxes.email": email })
-
-	if (existing) {
-		return res.status(409).json({ error: "Mailbox already claimed" })
-	}
-
-	await db.AddToArray({ id: res.locals.id }, { mailboxes: { email, name } })
 
 	return res.sendStatus(200)
 })
@@ -116,15 +153,11 @@ router.post("/mailbox/select", async (req, res, next) => {
 	const user = res.locals.user
 	const email = req.body?.email
 
-	if (!user || !email) {
-		return res.status(400).json({ error: "Bad request" })
+	if (!user) {
+		throw new HttpError(400, "Bad Request")
 	}
 
-	const owned = user.mailboxes.some((m) => m.email === email)
-
-	if (!owned) {
-		return res.status(403).json({ error: "Not your mailbox" })
-	}
+	EnsureMailboxOwnership(user, email)
 
 	if (!req.session.mail) {
 		req.session.mail = {}
@@ -135,6 +168,28 @@ router.post("/mailbox/select", async (req, res, next) => {
 	return res.json({ url: `${config.PREFIX}/oauth/mail/mailbox` })
 })
 
-router.use((req, res, next) => res.sendStatus(404))
+router.post("/mailbox/create", RequireAppAuth, async (req, res, next) => {
+	const email = req.body.email
+	const name = req.body.name
+
+	ValidateMailbox(email, name)
+
+	EnsureNotMailbox(email)
+
+	await db.AddToArray({ id: res.locals.id }, { mailboxes: { email, name } })
+
+	return res.sendStatus(200)
+})
+
+router.post("/mailbox/check", async (req, res, next) => {
+	const email = req.body.email
+	const name = req.body.name
+
+	ValidateMailbox(email, name)
+
+	EnsureNotMailbox(email)
+
+	return res.sendStatus(200)
+})
 
 module.exports = router

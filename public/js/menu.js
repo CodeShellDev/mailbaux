@@ -7,6 +7,7 @@ class PopupMenu {
 		actions = [],
 		onSubmit = null,
 		onSubmitClicked = null,
+		showError: showErrors = true,
 	}) {
 		this.title = title
 		this.description = description
@@ -17,6 +18,7 @@ class PopupMenu {
 		this.onSubmitClicked = onSubmitClicked
 		this.container = this.render()
 		this.overlay = null
+		this.showErrors = showErrors
 	}
 
 	render() {
@@ -27,6 +29,7 @@ class PopupMenu {
         <h3>${this.title}</h3>
 		<p>${this.description}</p>
         <br />
+		<span class="form-error" hidden></span>
         <form method="post" action="${this.endpoint}">
         	${this.fields.map((field) => this.renderField(field)).join("")}
 			<div class="form-actions">
@@ -39,6 +42,8 @@ class PopupMenu {
 
 		wrapper.querySelector("form").addEventListener("submit", async (e) => {
 			e.preventDefault()
+
+			this.clearError()
 
 			const data = Object.fromEntries(new FormData(e.target).entries())
 
@@ -62,13 +67,20 @@ class PopupMenu {
 				body: JSON.stringify(data),
 			})
 
-			if (response.status === 200) {
-				if (this.onSubmit) {
-					this.onSubmit(response)
-				}
+			const data = await response.json()
 
-				this.close()
+			if (!response.ok) {
+				if (this.showErrors)
+					this.displayError(data?.error ?? "Something went wrong")
+
+				return
 			}
+
+			if (this.onSubmit) {
+				this.onSubmit(response)
+			}
+
+			this.close()
 		})
 
 		return wrapper
@@ -135,6 +147,20 @@ class PopupMenu {
 		`
 	}
 
+	displayError(message) {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = message
+		errorElement.hidden = false
+	}
+
+	clearError() {
+		const errorElement = this.container.querySelector(".form-error")
+
+		errorElement.textContent = ""
+		errorElement.hidden = true
+	}
+
 	open(overwrites = []) {
 		const fields = structuredClone(this.fields)
 
@@ -174,6 +200,7 @@ class Menu {
 		actions = [{ label: "Submit", name: "submit" }],
 		onSubmit = null,
 		onSubmitClicked = null,
+		showErrors = true,
 	}) {
 		this.title = title
 		this.endpoint = endpoint
@@ -183,6 +210,7 @@ class Menu {
 		this.onSubmitClicked = onSubmitClicked
 		this.container = this.render()
 		this.overlay = null
+		this.showErrors = showErrors
 	}
 
 	render() {
@@ -192,6 +220,7 @@ class Menu {
 		const html = `
         <h3>${this.title}</h3>
         <hr /><br />
+		<span class="form-error" hidden></span>
         <form method="post" action="${this.endpoint}">
         	${this.fields.map((field) => this.renderField(field)).join("")}
 			<div class="form-actions">
@@ -219,13 +248,24 @@ class Menu {
 				body: JSON.stringify(data),
 			})
 
-			if (response.status === 200) {
-				if (this.onSubmit) {
-					this.onSubmit()
-				}
+			const data = await response.json()
 
-				this.close()
+			if (!response.ok) {
+				if (this.showErrors)
+					this.displayError(data?.error ?? "Something went wrong")
+
+				return
 			}
+
+			if (this.onSubmit) {
+				this.onSubmit(response)
+			}
+
+			if (this.onSubmit) {
+				this.onSubmit()
+			}
+
+			this.close()
 		})
 
 		return wrapper
