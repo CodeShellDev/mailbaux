@@ -1,4 +1,5 @@
 const express = require("express")
+const { HttpError } = require("../types/errors")
 const router = express.Router()
 
 router.get("/", (req, res, next) => {
@@ -12,6 +13,9 @@ router.get("/", (req, res, next) => {
 })
 
 router.get("/select", async (req, res, next) => {
+	if (res.locals.context !== "mail")
+		throw new HttpError(401, "No mail flow is currently active")
+
 	return res.render("select", {
 		prefix: req.baseUrl,
 	})
