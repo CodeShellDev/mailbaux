@@ -255,7 +255,7 @@ class Menu {
 		this.form = null
 	}
 
-	async request(data, endpoint) {
+	async request(endpoint, data) {
 		try {
 			const response = await fetch(endpoint, {
 				method: "POST",
