@@ -4,9 +4,10 @@
 
 <br/>
 
-Mailbaux is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
+Mailbaux (pronounced /ˈmeɪlˌbɔːks/ like mailbawks) <br/>
+is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
 
-Mailbaux acts as an OAuth2 relay between your mail server and your IdP.
+It acts as an OAuth2 relay between your mail server and your IdP.
 
 Supported mail servers include solutions such as [mailcow](https://github.com/mailcow/mailcow-dockerized).
 
