@@ -46,7 +46,7 @@ function ValidateEmail(email) {
 	}
 }
 
-async function ValidateMailbox(email, name) {
+async function ValidateMailboxAsync(email, name) {
 	ValidateEmail(email)
 
 	if (!name || typeof name !== "string") {
@@ -60,7 +60,7 @@ async function ValidateMailbox(email, name) {
 	}
 }
 
-async function EnsureNotMailbox(email) {
+async function EnsureNotMailboxAsync(email) {
 	ValidateEmail(email)
 
 	const mailbox = await db.FindBy({ "mailboxes.email": email })
@@ -70,7 +70,7 @@ async function EnsureNotMailbox(email) {
 	}
 }
 
-async function EnsureMailbox(email) {
+async function EnsureMailboxAsync(email) {
 	ValidateEmail(email)
 
 	const mailbox = await db.FindBy({ "mailboxes.email": email })
@@ -82,8 +82,8 @@ async function EnsureMailbox(email) {
 	return mailbox
 }
 
-async function EnsureMailboxOwnership(user, email) {
-	const mailbox = await EnsureMailbox(email)
+async function EnsureMailboxOwnershipAsync(user, email) {
+	const mailbox = await EnsureMailboxAsync(email)
 
 	if (mailbox.id !== user.id) {
 		throw new HttpError(403, "Not your mailbox")
@@ -124,7 +124,7 @@ router.post("/mailbox/edit", RequireAppAuth, async (req, res, next) => {
 	const user = res.locals.user
 	const email = req.body.email
 
-	EnsureMailboxOwnership(user, email)
+	await EnsureMailboxOwnershipAsync(user, email)
 
 	await db.UpdateBy(
 		{ id: res.locals.id, "mailboxes.email": email },
@@ -138,7 +138,7 @@ router.post("/mailbox/delete", RequireAppAuth, async (req, res, next) => {
 	const user = res.locals.user
 	const email = req.body.email
 
-	EnsureMailboxOwnership(user, email)
+	await EnsureMailboxOwnershipAsync(user, email)
 
 	await db.DeleteFromArrayBy(
 		{ id: res.locals.id },
@@ -157,7 +157,7 @@ router.post("/mailbox/select", async (req, res, next) => {
 		throw new HttpError(400, "Bad Request")
 	}
 
-	EnsureMailboxOwnership(user, email)
+	await EnsureMailboxOwnershipAsync(user, email)
 
 	if (!req.session.mail) {
 		req.session.mail = {}
@@ -172,9 +172,9 @@ router.post("/mailbox/create", RequireAppAuth, async (req, res, next) => {
 	const email = req.body.email
 	const name = req.body.name
 
-	ValidateMailbox(email, name)
+	await ValidateMailboxAsync(email, name)
 
-	EnsureNotMailbox(email)
+	await EnsureNotMailboxAsync(email)
 
 	await db.AddToArray({ id: res.locals.id }, { mailboxes: { email, name } })
 
@@ -185,9 +185,9 @@ router.post("/mailbox/check", async (req, res, next) => {
 	const email = req.body.email
 	const name = req.body.name
 
-	ValidateMailbox(email, name)
+	await ValidateMailboxAsync(email, name)
 
-	EnsureNotMailbox(email)
+	await EnsureNotMailboxAsync(email)
 
 	return res.sendStatus(200)
 })
