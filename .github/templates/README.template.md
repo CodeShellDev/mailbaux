@@ -168,6 +168,11 @@ Found this project helpful? Consider leaving a ⭐️!
 
 :)
 
+## Help
+
+Do you have a question or need help setting up Mailbaux?
+Join our [Matrix Server](https://matrix.to/#/#codeshelldev.sso.mailbaux:matrix.org)!
+
 ## License
 
 This Project is licensed under the [MIT License](./LICENSE).
