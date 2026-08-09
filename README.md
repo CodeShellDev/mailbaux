@@ -48,9 +48,7 @@ services:
     ports:
       - "8070:8070"
     environment:
-      DB_HOST: ${DB_HOST:-mongo:27017}
-      DB_USER: ${DB_USER:-admin}
-      DB_NAME: ${DB_NAME:-mailbaux}
+      DB_HOST: ${DB_HOST:-mongo:27017
       REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
@@ -65,7 +63,7 @@ services:
     image: mongo:7
     container_name: mailbaux-db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-bauxer}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
       MONGO_INITDB_DATABASE: ${DB_NAME:-mailbaux}
     volumes:
