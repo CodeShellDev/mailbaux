@@ -95,6 +95,8 @@ Copy the example:
 
 #### Defaults
 
+These environment variables do not necessarily need to be overwritten and can be (if fine with defaults) left out.
+
 ```dotenv
 +{{{ read "examples/defaults.env" }}}
 ```
