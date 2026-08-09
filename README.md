@@ -178,9 +178,10 @@ SESSION_SECRET=SECURE_KEY
 These environment variables do not necessarily need to be overwritten and can be (if fine with defaults) left out.
 
 ```dotenv
-DB_USER=admin
+DB_USER=bauxer
 DB_NAME=mailbaux
 
+# Defined in compose file
 DB_HOST=mongo:27017
 REDIS_HOST=redis:6379
 
@@ -192,6 +193,7 @@ PREFIX=/
 # (See https://github.com/micromatch/micromatch#matching-features)
 # Example: domain.com,example.*,*.com
 ALLOWED_EMAIL_DOMAINS=*
+
 ```
 
 #### Storage
