@@ -250,6 +250,8 @@ services:
       - traefik.docker.network=proxy
     environment:
       DB_HOST: ${DB_HOST:-mongo:27017}
+      DB_NAME: ${DB_NAME:-mailbaux}
+      DB_USER: ${DB_USER:-bauxer}
       REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
