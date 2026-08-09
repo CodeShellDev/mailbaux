@@ -80,8 +80,8 @@ define("MAIL_CLIENT_SECRET", { required: true })
 // DB
 
 define("DB_HOST", { required: true })
-define("DB_NAME", { default: "mailbaux" })
-define("DB_USER", { default: "bauxer" })
+define("DB_NAME", { required: true })
+define("DB_USER", { required: true })
 define("DB_PASSWORD", { required: true })
 
 config.DB_URI = `mongodb://${encodeURIComponent(config.DB_USER)}:${encodeURIComponent(
