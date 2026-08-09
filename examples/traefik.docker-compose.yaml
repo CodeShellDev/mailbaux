@@ -30,7 +30,7 @@ services:
     image: mongo:7
     container_name: mailbaux-db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-bauxer}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
       MONGO_INITDB_DATABASE: ${DB_NAME:-mailbaux}
     volumes:
