@@ -175,6 +175,8 @@ SESSION_SECRET=SECURE_KEY
 
 #### Defaults
 
+These environment variables do not necessarily need to be overwritten and can be (if fine with defaults) left out.
+
 ```dotenv
 DB_USER=admin
 DB_NAME=mailbaux
