@@ -176,6 +176,7 @@ SESSION_SECRET=SECURE_KEY
 These environment variables do not necessarily need to be overwritten and can be (if fine with defaults) left out.
 
 ```dotenv
+# Defined in compose file
 DB_USER=bauxer
 DB_NAME=mailbaux
 
