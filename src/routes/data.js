@@ -114,11 +114,12 @@ router.get("/mailbox", RequireMailOrAppAuth, async (req, res, next) => {
 router.post("/mailbox/edit", RequireAppAuth, async (req, res, next) => {
 	const user = res.locals.user
 	const email = req.body.email
+	const name = req.body.name
 
 	await EnsureMailboxOwnershipAsync(user, email)
 
 	await services.mailboxes.EditMailbox(res.locals.id, email, {
-		name: req.body.name,
+		name,
 	})
 
 	return res.sendStatus(200)
