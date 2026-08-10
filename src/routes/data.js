@@ -1,17 +1,16 @@
-const express = require("express")
-const router = express.Router()
-const { HttpError } = require("../types/errors")
-const micromatch = require("micromatch")
+import { Router } from "express"
+import { HttpError } from "#types/errors"
+import micromatch from "micromatch"
 
-const logger = require("../utils/logger")
-const config = require("../utils/config")
-const db = require("../utils/db")
+import logger from "#utils/logger"
+import config from "#utils/config"
+import { FindBy, UpdateBy, DeleteFromArrayBy, AddToArray } from "#utils/db"
 
-const {
-	RequireAppAuth,
-	RequireMailAuth,
-	RequireMailOrAppAuth,
-} = require("../router")
+import services from "#services"
+
+import { RequireAppAuth, RequireMailAuth, RequireMailOrAppAuth } from "#router"
+
+const router = Router()
 
 function IsValideEmail(email) {
 	if (!email || typeof email !== "string") {
@@ -26,7 +25,7 @@ function IsValideEmail(email) {
 function IsEmailAllowed(email) {
 	const [, domain] = email.split("@")
 
-	return micromatch.isMatch(domain, config.ALLOWED_EMAIL_DOMAINS)
+	return micromatch.isMatch(domain, config.VALID_EMAIL_DOMAINS)
 }
 
 function ValidateEmail(email) {
@@ -44,7 +43,7 @@ function ValidateEmail(email) {
 function EmailAllowed(email) {
 	const [, domain] = email.split("@")
 
-	if (!micromatch.isMatch(domain, config.ALLOWED_EMAIL_DOMAINS)) {
+	if (!micromatch.isMatch(domain, config.VALID_EMAIL_DOMAINS)) {
 		throw new HttpError(400, "Email domain not allowed")
 	}
 }
@@ -58,7 +57,7 @@ async function ValidateMailboxAsync(email, name) {
 		throw new HttpError(400, "Invalid name")
 	}
 
-	const existing = await db.FindBy({ "mailboxes.email": email })
+	const existing = await FindBy({ "mailboxes.email": email })
 
 	if (existing) {
 		throw new HttpError(409, "Mailbox already claimed")
@@ -68,7 +67,7 @@ async function ValidateMailboxAsync(email, name) {
 async function EnsureNotMailboxAsync(email) {
 	ValidateEmail(email)
 
-	const mailbox = await db.FindBy({ "mailboxes.email": email })
+	const mailbox = await FindBy({ "mailboxes.email": email })
 
 	if (mailbox) {
 		throw new HttpError(409, "Mailbox already claimed")
@@ -78,7 +77,7 @@ async function EnsureNotMailboxAsync(email) {
 async function EnsureMailboxAsync(email) {
 	ValidateEmail(email)
 
-	const mailbox = await db.FindBy({ "mailboxes.email": email })
+	const mailbox = await FindBy({ "mailboxes.email": email })
 
 	if (!mailbox) {
 		throw new HttpError(404, "Mailbox does not exist")
@@ -115,13 +114,13 @@ router.get("/mailbox", RequireMailOrAppAuth, async (req, res, next) => {
 router.post("/mailbox/edit", RequireAppAuth, async (req, res, next) => {
 	const user = res.locals.user
 	const email = req.body.email
+	const name = req.body.name
 
 	await EnsureMailboxOwnershipAsync(user, email)
 
-	await db.UpdateBy(
-		{ id: res.locals.id, "mailboxes.email": email },
-		{ "mailboxes.$.name": req.body.name },
-	)
+	await services.mailboxes.EditMailbox(res.locals.id, email, {
+		name,
+	})
 
 	return res.sendStatus(200)
 })
@@ -132,10 +131,7 @@ router.post("/mailbox/delete", RequireAppAuth, async (req, res, next) => {
 
 	await EnsureMailboxOwnershipAsync(user, email)
 
-	await db.DeleteFromArrayBy(
-		{ id: res.locals.id },
-		{ mailboxes: { email: email } },
-	)
+	await services.mailboxes.DeleteMailbox(res.locals.id, email)
 
 	return res.sendStatus(200)
 })
@@ -166,7 +162,7 @@ router.post("/mailbox/create", RequireAppAuth, async (req, res, next) => {
 
 	await EnsureNotMailboxAsync(email)
 
-	await db.AddToArray({ id: res.locals.id }, { mailboxes: { email, name } })
+	await services.mailboxes.CreateMailbox(res.locals.id, { email, name })
 
 	return res.sendStatus(200)
 })
@@ -182,4 +178,4 @@ router.post("/mailbox/check", async (req, res, next) => {
 	return res.sendStatus(200)
 })
 
-module.exports = router
+export default router

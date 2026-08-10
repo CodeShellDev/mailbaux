@@ -1,18 +1,25 @@
-const express = require("express")
-const router = express.Router()
-const crypto = require("crypto")
+import { Router } from "express"
 
-const { DecodeToken, SignToken } = require("../utils/token")
+import crypto from "crypto"
 
-const logger = require("../utils/logger")
-const config = require("../utils/config")
-const db = require("../utils/db")
+import { DecodeToken, SignToken } from "#utils/token"
 
-const { parse: ParseUrl } = require("tldts")
+import logger from "#utils/logger"
+import config from "#utils/config"
+import {
+	GetUserByID,
+	WriteToCache,
+	GetFromCache,
+	DeleteFromCache,
+} from "#utils/db"
 
-const qs = require("querystring")
+import tldts from "tldts"
 
-const axios = require("axios")
+import querystring from "querystring"
+
+import axios from "axios"
+
+const router = Router()
 
 async function TokenExchange(endpoint, code, id, secret, redirectURI) {
 	const data = {
@@ -23,7 +30,7 @@ async function TokenExchange(endpoint, code, id, secret, redirectURI) {
 		client_secret: secret,
 	}
 
-	const formData = qs.stringify(data)
+	const formData = querystring.stringify(data)
 
 	const response = await axios.post(endpoint, formData, {
 		headers: {
@@ -31,7 +38,7 @@ async function TokenExchange(endpoint, code, id, secret, redirectURI) {
 		},
 	})
 
-	logger.debug(`Token Exchange:\n`, response.data)
+	logger.dev("Token Exchange", response.data)
 
 	return response.data
 }
@@ -43,7 +50,7 @@ async function GetUserInfo(endpoint, token) {
 		},
 	})
 
-	logger.debug(`Userinfo:\n`, response.data)
+	logger.dev("Userinfo:", response.data)
 
 	return response.data
 }
@@ -51,7 +58,7 @@ async function GetUserInfo(endpoint, token) {
 async function IsOwnedByUser(id, email) {
 	if (!id || !email) return false
 
-	const user = await db.GetUserByID(id)
+	const user = await GetUserByID(id)
 
 	if (!user) return false
 
@@ -68,17 +75,17 @@ function GetBaseUrl(req, overwriteHost = null) {
 function GetMatchingRedirectUri(req, redirectUris, host = null) {
 	const baseUrl = GetBaseUrl(req, host)
 
-	const rootDomain = ParseUrl(baseUrl).domain
+	const rootDomain = tldts.parse(baseUrl).domain
 
 	let candidates = redirectUris.filter(
-		(uri) => ParseUrl(uri).domain === rootDomain,
+		(uri) => tldts.parse(uri).domain === rootDomain,
 	)
 
 	if (candidates.length > 1) {
-		const subdomain = ParseUrl(baseUrl).subdomain
+		const subdomain = tldts.parse(baseUrl).subdomain
 
 		const match = candidates.find(
-			(uri) => ParseUrl(uri).subdomain === subdomain,
+			(uri) => tldts.parse(uri).subdomain === subdomain,
 		)
 
 		if (match) candidates = [match]
@@ -124,14 +131,14 @@ router.get("/authorize", async (req, res, next) => {
 		// Generate our own random nonce instead
 		const nonce = crypto.randomBytes(24).toString("hex")
 
-		await db.WriteToCache(`state:${nonce}`, {
+		await WriteToCache(`state:${nonce}`, {
 			host: originalHost,
 			origState: req.query.state,
 		})
 
 		if (
 			matchedUri &&
-			ParseUrl(GetBaseUrl(req)).domain !== ParseUrl(matchedUri).domain
+			tldts.parse(GetBaseUrl(req)).domain !== tldts.parse(matchedUri).domain
 		) {
 			const authorizeUrl = matchedUri.replace("callback", "authorize")
 
@@ -144,11 +151,11 @@ router.get("/authorize", async (req, res, next) => {
 		const forwardedQuery = new URLSearchParams(req.query)
 		forwardedQuery.set("state", nonce)
 
-		const newUrl = `${config.MAIL_AUTHORIZATION_ENDPOINT}?${forwardedQuery.toString()}`
+		const newUrl = `${MAIL_AUTHORIZATION_ENDPOINT}?${forwardedQuery.toString()}`
 
 		return res.redirect(newUrl)
 	} catch (err) {
-		logger.err("Error in /authorize:", err)
+		logger.error("Error in /authorize:", err)
 		return res.status(500).send("Authorization failed")
 	}
 })
@@ -161,13 +168,13 @@ router.get("/callback", async (req, res, next) => {
 			return res.status(400).send("Missing state")
 		}
 
-		const stateData = await db.GetFromCache(`state:${nonce}`)
+		const stateData = await GetFromCache(`state:${nonce}`)
 
 		if (!stateData?.host) {
 			return res.status(400).send("Invalid or expired state")
 		}
 
-		await db.DeleteFromCache(`state:${nonce}`)
+		await DeleteFromCache(`state:${nonce}`)
 
 		const redirectUri = GetMatchingRedirectUri(
 			req,
@@ -193,11 +200,11 @@ router.get("/callback", async (req, res, next) => {
 
 		const codeHandle = crypto.randomBytes(24).toString("hex")
 
-		await db.WriteToCache(`code:${codeHandle}`, tokenRes)
+		await WriteToCache(`code:${codeHandle}`, tokenRes)
 
 		const idToken = DecodeToken(tokenRes.id_token)
 
-		await db.WriteToCache(`access:${tokenRes.access_token}`, idToken.sub)
+		await WriteToCache(`access:${tokenRes.access_token}`, idToken.sub)
 
 		req.session.mail = {
 			code: codeHandle,
@@ -207,7 +214,7 @@ router.get("/callback", async (req, res, next) => {
 
 		return res.redirect("/select")
 	} catch (err) {
-		logger.err("Error in /callback:", err)
+		logger.error("Error in /callback:", err)
 		return res.status(502).send("Callback failed")
 	}
 })
@@ -220,9 +227,9 @@ router.get("/mailbox", async (req, res, next) => {
 			return res.status(400).send("No pending mail session")
 		}
 
-		const originalHost = await db.GetFromCache(`state:${mailData.state}`)
+		const originalHost = await GetFromCache(`state:${mailData.state}`)
 
-		const tokenRes = await db.GetFromCache(`code:${mailData.code}`)
+		const tokenRes = await GetFromCache(`code:${mailData.code}`)
 
 		if (!tokenRes?.id_token) {
 			return res.status(400).send("Session expired, please restart")
@@ -230,7 +237,7 @@ router.get("/mailbox", async (req, res, next) => {
 
 		const idToken = DecodeToken(tokenRes.id_token)
 
-		await db.WriteToCache(`id:${idToken.sub}`, mailData.selected_mailbox)
+		await WriteToCache(`id:${idToken.sub}`, mailData.selected_mailbox)
 
 		req.session.mail = {}
 
@@ -248,7 +255,7 @@ router.get("/mailbox", async (req, res, next) => {
 			`${redirectUri}?code=${mailData.code}&state=${mailData.state}`,
 		)
 	} catch (err) {
-		logger.err("Error in /mailbox:", err)
+		logger.error("Error in /mailbox:", err)
 		return res.status(500).send("Mailbox selection failed")
 	}
 })
@@ -259,13 +266,13 @@ router.post("/token", async (req, res, next) => {
 			return res.status(400).json({ error: "invalid_request" })
 		}
 
-		const tokenRes = await db.GetFromCache(`code:${req.body.code}`)
+		const tokenRes = await GetFromCache(`code:${req.body.code}`)
 
 		if (!tokenRes?.id_token) {
 			return res.status(400).json({ error: "invalid_grant" })
 		}
 
-		await db.DeleteFromCache(`code:${req.body.code}`)
+		await DeleteFromCache(`code:${req.body.code}`)
 
 		const idToken = tokenRes.id_token
 		const accessToken = tokenRes.access_token
@@ -274,8 +281,8 @@ router.post("/token", async (req, res, next) => {
 
 		let newPayload = decoded
 
-		const id = await db.GetFromCache(`access:${accessToken}`)
-		const mailbox = id ? await db.GetFromCache(`id:${id}`) : null
+		const id = await GetFromCache(`access:${accessToken}`)
+		const mailbox = id ? await GetFromCache(`id:${id}`) : null
 
 		if (!(await IsOwnedByUser(id, mailbox))) {
 			return res.status(403).json({ error: "mailbox_not_selected" })
@@ -287,7 +294,7 @@ router.post("/token", async (req, res, next) => {
 		const newIdToken = SignToken(newPayload)
 
 		// Keep access-token -> id mapping alive only as long as the token itself is valid
-		await db.WriteToCache(`access:${accessToken}`, id, 300)
+		await WriteToCache(`access:${accessToken}`, id, 300)
 
 		const responseBody = {
 			access_token: accessToken,
@@ -299,7 +306,7 @@ router.post("/token", async (req, res, next) => {
 
 		return res.status(200).json(responseBody)
 	} catch (err) {
-		logger.err("Error in /token:", err)
+		logger.error("Error in /token:", err)
 		return res.status(500).json({ error: "server_error" })
 	}
 })
@@ -323,8 +330,8 @@ router.get("/userinfo", async (req, res, next) => {
 			return res.status(502).json({ error: "userinfo_unavailable" })
 		}
 
-		const id = await db.GetFromCache(`access:${accessToken}`)
-		const mailbox = id ? await db.GetFromCache(`id:${id}`) : null
+		const id = await GetFromCache(`access:${accessToken}`)
+		const mailbox = id ? await GetFromCache(`id:${id}`) : null
 
 		if (!(await IsOwnedByUser(id, mailbox))) {
 			return res.status(403).json({ error: "mailbox_not_selected" })
@@ -332,14 +339,14 @@ router.get("/userinfo", async (req, res, next) => {
 
 		userinfo.email = mailbox
 
-		await db.DeleteFromCache(`access:${accessToken}`)
-		await db.DeleteFromCache(`id:${id}`)
+		await DeleteFromCache(`access:${accessToken}`)
+		await DeleteFromCache(`id:${id}`)
 
 		return res.status(200).json(userinfo)
 	} catch (err) {
-		logger.err("Error in /userinfo:", err)
+		_err("Error in /userinfo:", err)
 		return res.status(502).json({ error: "server_error" })
 	}
 })
 
-module.exports = router
+export default router

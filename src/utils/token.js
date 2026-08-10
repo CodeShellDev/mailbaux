@@ -1,26 +1,26 @@
-const jwt = require("jsonwebtoken")
-const fs = require("fs")
-const path = require("path")
+import jwt from "jsonwebtoken"
+import crypto from "crypto"
 
-const config = require("./config")
+import fs from "fs"
+import path from "path"
 
-const logger = require("./logger")
+import config from "#utils/config"
 
-const { generateKeyPairSync } = require("crypto")
+import logger from "#utils/logger"
 
 let privateKey
 
-function CheckForKey() {
+export function CheckForKey() {
 	const privateKeyPath = path.join(config.JWT_KEY_PATH, "private_key.pem")
 	const publicKeyPath = path.join(config.JWT_KEY_PATH, "public_key.pem")
 
 	if (fs.existsSync(privateKeyPath) && fs.existsSync(publicKeyPath)) {
 		privateKey = fs.readFileSync(privateKeyPath, "utf8")
 
-		logger.log("Loaded existing RSA private key")
+		logger.info("Loaded existing RSA private key")
 	} else {
 		const { privateKey: genPrivKey, publicKey: genPubKey } =
-			generateKeyPairSync("rsa", {
+			crypto.generateKeyPairSync("rsa", {
 				modulusLength: 2048,
 				publicKeyEncoding: {
 					type: "spki",
@@ -43,7 +43,7 @@ function CheckForKey() {
 	}
 }
 
-function SignToken(payload) {
+export function SignToken(payload) {
 	const options = {
 		algorithm: "RS256",
 		keyid: "middleware-key-1",
@@ -52,12 +52,8 @@ function SignToken(payload) {
 	return jwt.sign(payload, privateKey, options)
 }
 
-function DecodeToken(idToken) {
+export function DecodeToken(idToken) {
 	return jwt.decode(idToken)
 }
 
 CheckForKey()
-
-exports.SignToken = SignToken
-exports.DecodeToken = DecodeToken
-exports.CheckForKey = CheckForKey

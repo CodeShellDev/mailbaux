@@ -1,59 +1,113 @@
-const util = require("util")
+import pino from "pino"
 
-const LOG_LEVEL = parseInt(process.env.LOG_LEVEL) || 1
+const _logger = pino({
+	level: process.env.LOG_LEVEL ?? "info",
+	customLevels: {
+		dev: 15,
+	},
+	transport: {
+		target: "pino-pretty",
+		options: {
+			colorize: true,
+			translateTime: "dd.mm.yy HH:MM:ss",
+			ignore: "pid,hostname",
+		},
+	},
+})
 
-const LEVEL = {
-	ENV: { value: "ENV_", id: 1 },
-	DB: { value: "DB__", id: 1 },
-	INFO: { value: "INFO", id: 1 },
-	WARN: { value: "WARN", id: 1 },
-	EROR: { value: "EROR", id: 1 },
-	DEBG: { value: "DEBG", id: 10 },
+function getCaller(skips) {
+	const stack = new Error().stack?.split("\n") ?? []
+
+	return parseCaller(stack[4 + skips])
 }
 
-function _log(level, ...args) {
-	if (LOG_LEVEL < level.id) {
-		return
+function parseCaller(
+	frame,
+	{ showFunction = false, showLine = true, showFile = true } = {},
+) {
+	if (!frame) return "unknown"
+
+	let match = frame.match(/^\s*at\s+(.+?)\s+\((.+):(\d+):(\d+)\)$/)
+
+	if (match) {
+		const [, functionName, file, line] = match
+
+		let res = ``
+
+		if (showFile) res += cleanPath(file)
+		if (showLine) res += `:${line}`
+		if (showFunction) res += ` ${functionName}()`
+
+		return res
 	}
 
-	const formattedArgs = args.map((arg) => {
-		if (typeof arg === "object") {
-			return util.inspect(arg, { showHidden: false, depth: null, colors: true })
-		}
-		return arg
-	})
-	console.log(`[${level.value}]`, ...formattedArgs)
+	match = frame.match(/^\s*at\s+(.+):(\d+):(\d+)$/)
+
+	if (match) {
+		const [, file, line] = match
+		let res = ``
+
+		if (showFile) res += cleanPath(file)
+		if (showLine) res += `:${line}`
+
+		return res
+	}
+
+	return frame.trim().replace(/^at\s+/, "")
 }
 
-function log(...args) {
-	_log(LEVEL.INFO, ...args)
+function cleanPath(file) {
+	return file.replace(/^file:\/\//, "").replace(/^.*\/src\//, "")
 }
 
-function warn(...args) {
-	_log(LEVEL.WARN, ...args)
+function normalize(obj) {
+	if (obj instanceof Error) {
+		return { err: obj }
+	}
+
+	return obj
 }
 
-function err(...args) {
-	_log(LEVEL.EROR, ...args)
+function log(level, msg, obj, options = {}) {
+	const caller = getCaller(options.skipCaller ?? 0)
+
+	if (obj !== undefined && typeof obj === "object" && obj !== null) {
+		obj.caller = caller
+
+		_logger[level](normalize(obj), msg)
+	} else {
+		_logger[level]({ caller }, msg)
+	}
 }
 
-function env(...args) {
-	_log(LEVEL.ENV, ...args)
+const logger = {
+	trace(msg, obj, options = {}) {
+		log("trace", msg, obj, options)
+	},
+
+	dev(msg, obj, options = {}) {
+		log("dev", msg, obj, options)
+	},
+
+	debug(msg, obj, options = {}) {
+		log("debug", msg, obj, options)
+	},
+
+	info(msg, obj, options = {}) {
+		log("info", msg, obj, options)
+	},
+
+	warn(msg, obj, options = {}) {
+		log("warn", msg, obj, options)
+	},
+
+	error(msg, obj, options = {}) {
+		log("error", msg, obj, options)
+	},
+
+	fatal(msg, obj, options = {}) {
+		log("fatal", msg, obj, options)
+	},
 }
 
-function db(...args) {
-	_log(LEVEL.DB, ...args)
-}
-
-function debug(...args) {
-	_log(LEVEL.DEBG, ...args)
-}
-
-exports.log = log
-exports.warn = warn
-exports.err = err
-exports.env = env
-exports.db = db
-exports.debug = debug
-
-exports.LEVEL = LEVEL
+export default logger

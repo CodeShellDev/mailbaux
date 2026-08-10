@@ -1,9 +1,10 @@
-const express = require("express")
-const router = express.Router()
+import { Router } from "express"
 
-const { HttpError } = require("../types/errors")
-const { RequireMailAuth } = require("../router")
-const logger = require("../utils/logger")
+import { HttpError } from "#types/errors"
+import { RequireMailAuth } from "#router"
+import logger from "#utils/logger"
+
+const router = Router()
 
 router.get("/", (req, res, next) => {
 	if (!req.isAuthenticated()) {
@@ -21,4 +22,4 @@ router.get("/select", RequireMailAuth, async (req, res, next) => {
 	})
 })
 
-module.exports = router
+export default router

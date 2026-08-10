@@ -1,19 +1,19 @@
-const logger = require("./utils/logger")
-const db = require("./utils/db")
+import logger from "#utils/logger"
+import { Close } from "#utils/db"
 
-module.exports = () => {
+export default () => {
 	process.on("SIGTERM", async () => {
-		logger.log("Received SIGTERM, shutting down gracefully...")
+		logger.info("Received SIGTERM, shutting down gracefully...")
 
-		await db.Close()
+		await Close()
 
 		process.exit(0)
 	})
 
 	process.on("SIGINT", async () => {
-		logger.log("Received SIGINT, shutting down gracefully...")
+		logger.info("Received SIGINT, shutting down gracefully...")
 
-		await db.Close()
+		await Close()
 
 		process.exit(0)
 	})

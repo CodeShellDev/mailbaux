@@ -1,23 +1,23 @@
-const logger = require("./utils/logger")
-const db = require("./utils/db")
-const docker = require("./docker")
-const CreateApp = require("./app")
+import logger from "#utils/logger"
+import { Init } from "#utils/db"
+import docker from "./docker.js"
+import createApp from "./app.js"
 
 const PORT = process.env.PORT || 8070
 
 async function start() {
 	try {
-		await db.Init()
+		await Init()
 
-		const app = CreateApp()
+		const app = createApp()
 
 		await docker()
 
 		app.listen(PORT, () => {
-			logger.log(`Server running on http://localhost:${PORT}`)
+			logger.info(`Server running on http://localhost:${PORT}`)
 		})
 	} catch (err) {
-		console.error(err)
+		logger.error("Encountered error", err, { skipCaller: true })
 		process.exit(1)
 	}
 }
