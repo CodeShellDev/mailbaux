@@ -1,3 +1,5 @@
+import db from "#utils/db"
+
 export async function EditMailbox(id, email, { name }) {
 	await db.UpdateBy(
 		{ id: id, "mailboxes.email": email },
