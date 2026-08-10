@@ -13,7 +13,51 @@ const _logger = pino({
 			ignore: "pid,hostname",
 		},
 	},
+	mixin() {
+		return { caller: getCaller() }
+	},
 })
+
+function getCaller() {
+	const stack = new Error().stack?.split("\n") ?? []
+
+	return parseCaller(stack[6])
+}
+
+function parseCaller(
+	frame,
+	{ showFunction = false, showLine = false, showFile = true } = {},
+) {
+	if (!frame) return "unknown"
+
+	let match = frame.match(/^\s*at\s+(.+?)\s+\((.+):(\d+):(\d+)\)$/)
+
+	if (match) {
+		const [, functionName, file, line] = match
+
+		let res = ``
+
+		if (showFile) res += cleanPath(file)
+		if (showLine) res += `:${line}`
+		if (showFunction) res += ` ${functionName}()`
+
+		return res
+	}
+
+	match = frame.match(/^\s*at\s+(.+):(\d+):(\d+)$/)
+
+	if (match) {
+		const [, file, line] = match
+
+		return `${cleanPath(file)}`
+	}
+
+	return frame.trim().replace(/^at\s+/, "")
+}
+
+function cleanPath(file) {
+	return file.replace(/^file:\/\//, "").replace(/^.*\/src\//, "")
+}
 
 function normalize(obj) {
 	if (obj instanceof Error) {
