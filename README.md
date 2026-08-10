@@ -193,8 +193,10 @@ PREFIX=/
 # Supports glob-like patterns separated by a comma.
 # (See https://github.com/micromatch/micromatch#matching-features)
 # Example: domain.com,example.*,*.com
-ALLOWED_EMAIL_DOMAINS=*
+VALID_EMAIL_DOMAINS=*
 
+# Allow non-admins to create mailboxes
+ALLOW_USER_MAILBOX_CREATION=true
 ```
 
 #### Storage
