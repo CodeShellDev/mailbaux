@@ -140,15 +140,3 @@ export async function WriteToCache(key, value, ttl = 3600) {
 	await redisClient.set(key, value)
 	await redisClient.expire(key, ttl)
 }
-
-export async function DeleteFromCache(key) {
-	await redisClient.del(key)
-}
-
-export function GetMongoDB() {
-	return mongoClient
-}
-
-export function GetRedis() {
-	return redisClient
-}
