@@ -151,11 +151,11 @@ router.get("/authorize", async (req, res, next) => {
 		const forwardedQuery = new URLSearchParams(req.query)
 		forwardedQuery.set("state", nonce)
 
-		const newUrl = `${MAIL_AUTHORIZATION_ENDPOINT}?${forwardedQuery.toString()}`
+		const newUrl = `${config.MAIL_AUTHORIZATION_ENDPOINT}?${forwardedQuery.toString()}`
 
 		return res.redirect(newUrl)
 	} catch (err) {
-		logger.error("Error in /authorize:", err)
+		logger.error("Error in /authorize:", err, { skipCaller: true })
 		return res.status(500).send("Authorization failed")
 	}
 })
@@ -214,7 +214,7 @@ router.get("/callback", async (req, res, next) => {
 
 		return res.redirect("/select")
 	} catch (err) {
-		logger.error("Error in /callback:", err)
+		logger.error("Error in /callback:", err, { skipCaller: true })
 		return res.status(502).send("Callback failed")
 	}
 })
@@ -255,7 +255,7 @@ router.get("/mailbox", async (req, res, next) => {
 			`${redirectUri}?code=${mailData.code}&state=${mailData.state}`,
 		)
 	} catch (err) {
-		logger.error("Error in /mailbox:", err)
+		logger.error("Error in /mailbox:", err, { skipCaller: true })
 		return res.status(500).send("Mailbox selection failed")
 	}
 })
@@ -306,7 +306,7 @@ router.post("/token", async (req, res, next) => {
 
 		return res.status(200).json(responseBody)
 	} catch (err) {
-		logger.error("Error in /token:", err)
+		logger.error("Error in /token:", err, { skipCaller: true })
 		return res.status(500).json({ error: "server_error" })
 	}
 })
