@@ -26,7 +26,7 @@ function getCaller() {
 
 function parseCaller(
 	frame,
-	{ showFunction = false, showLine = false, showFile = true } = {},
+	{ showFunction = false, showLine = true, showFile = true } = {},
 ) {
 	if (!frame) return "unknown"
 
