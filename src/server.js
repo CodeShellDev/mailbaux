@@ -1,7 +1,7 @@
 import logger from "#utils/logger"
 import { Init } from "#utils/db"
 import docker from "./docker.js"
-import app from "./app.js"
+import createApp from "./app.js"
 
 const PORT = process.env.PORT || 8070
 
@@ -9,7 +9,7 @@ async function start() {
 	try {
 		await Init()
 
-		const app = app()
+		const app = createApp()
 
 		await docker()
 
