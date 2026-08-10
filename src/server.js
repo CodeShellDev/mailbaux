@@ -17,7 +17,7 @@ async function start() {
 			logger.info(`Server running on http://localhost:${PORT}`)
 		})
 	} catch (err) {
-		logger.error("", err, { skipCaller: true })
+		logger.error("Encountered error", err, { skipCaller: true })
 		process.exit(1)
 	}
 }
