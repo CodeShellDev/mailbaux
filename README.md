@@ -1,14 +1,38 @@
-# Mailbaux
+<p align="left">
+    <img width="512" alt="Mailbaux Logo" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/logo/banner.png">
+</p>
 
-Mailbaux is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
+<br/>
 
-Mailbaux acts as an OAuth2 relay between your mail server and your IdP.
+Mailbaux (pronounced /ˈmeɪlˌbɔːks/ like mailbawks) <br/>
+is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
+
+It acts as an OAuth2 relay between your mail server and your IdP.
 
 Supported mail servers include solutions such as [mailcow](https://github.com/mailcow/mailcow-dockerized).
 
 ## Screenshots
 
-![mailbaux-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
+<table>
+  <tr>
+    <td><strong>Home</strong></td>
+    <td>
+      <img width="712" alt="Mailbaux Home" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/home.webp">
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Select Flow</strong></td>
+    <td>
+      <img width="712" alt="Mailbaux Select Flow" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/select-flow.webp">
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Edit / Create / Delete</strong></td>
+    <td>
+      <img width="712" alt="Mailbaux Edit/Create/Delete Menus" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/edit-create-delete.webp">
+    </td>
+  </tr>
+</table>
 
 ## Getting Started
 
@@ -24,9 +48,9 @@ services:
     ports:
       - "8070:8070"
     environment:
-      DB_HOST: ${DB_HOST:-mongo:27017}
-      DB_USER: ${DB_USER:-admin}
+      DB_HOST: ${DB_HOST:-mongo:27017
       DB_NAME: ${DB_NAME:-mailbaux}
+      DB_USER: ${DB_USER:-bauxer}
       REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
@@ -41,7 +65,7 @@ services:
     image: mongo:7
     container_name: mailbaux-db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-bauxer}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
       MONGO_INITDB_DATABASE: ${DB_NAME:-mailbaux}
     volumes:
@@ -151,16 +175,26 @@ SESSION_SECRET=SECURE_KEY
 
 #### Defaults
 
+These environment variables do not necessarily need to be overwritten and can be (if fine with defaults) left out.
+
 ```dotenv
-DB_USER=admin
+# Defined in compose file
+DB_USER=bauxer
 DB_NAME=mailbaux
 
+# Defined in compose file
 DB_HOST=mongo:27017
 REDIS_HOST=redis:6379
 
 APP_REDIRECT_PATH=/oauth/app/callback
 
 PREFIX=/
+
+# Supports glob-like patterns separated by a comma.
+# (See https://github.com/micromatch/micromatch#matching-features)
+# Example: domain.com,example.*,*.com
+ALLOWED_EMAIL_DOMAINS=*
+
 ```
 
 #### Storage
@@ -216,8 +250,8 @@ services:
       - traefik.docker.network=proxy
     environment:
       DB_HOST: ${DB_HOST:-mongo:27017}
-      DB_USER: ${DB_USER:-admin}
       DB_NAME: ${DB_NAME:-mailbaux}
+      DB_USER: ${DB_USER:-bauxer}
       REDIS_HOST: ${REDIS_HOST:-redis:6379}
     env_file:
       - .env
@@ -235,7 +269,7 @@ services:
     image: mongo:7
     container_name: mailbaux-db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-admin}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-bauxer}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
       MONGO_INITDB_DATABASE: ${DB_NAME:-mailbaux}
     volumes:
@@ -282,12 +316,25 @@ Found a bug or have an idea for improving Mailbaux?
 
 Feel free to open an issue or submit a pull request.
 
-Please be respectful and patient when contributing. Mailbaux is maintained by volunteers.
+Please be respectful and patient when contributing.
 
 ## Supporting
 
-If you find Mailbaux useful, consider giving the repository a ⭐ to help others discover it.
+Found this project helpful? Consider leaving a ⭐️!
+
+:)
+
+## Help
+
+Do you have a question or need help setting up Mailbaux?
+Join our [Matrix Server](https://matrix.to/#/#codeshelldev.sso.mailbaux:matrix.org)!
 
 ## License
 
 This Project is licensed under the [MIT License](./LICENSE).
+
+## Legal
+
+Logo designed by @CodeShellDev, All Rights Reserved.
+
+This project is not affiliated with mailcow nor authentik.

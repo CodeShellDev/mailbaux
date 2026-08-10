@@ -4,15 +4,35 @@
 
 <br/>
 
-Mailbaux is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
+Mailbaux (pronounced /ˈmeɪlˌbɔːks/ like mailbawks) <br/>
+is a mailbox manager that allows users to select between multiple mailboxes and authenticate to their mail server through an existing Identity Provider (IdP).
 
-Mailbaux acts as an OAuth2 relay between your mail server and your IdP.
+It acts as an OAuth2 relay between your mail server and your IdP.
 
 Supported mail servers include solutions such as [mailcow](https://github.com/mailcow/mailcow-dockerized).
 
 ## Screenshots
 
-![mailbaux-home](https://github.com/user-attachments/assets/934fb3a3-3160-4fcb-a30e-10b62a804411)
+<table>
+  <tr>
+    <td><strong>Home</strong></td>
+    <td>
+      <img width="712" alt="Mailbaux Home" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/home.webp">
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Select Flow</strong></td>
+    <td>
+      <img width="712" alt="Mailbaux Select Flow" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/select-flow.webp">
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Edit / Create / Delete</strong></td>
+    <td>
+      <img width="712" alt="Mailbaux Edit/Create/Delete Menus" src="https://raw.githubusercontent.com/CodeShellDev/mailbaux/refs/heads/main/screenshots/edit-create-delete.webp">
+    </td>
+  </tr>
+</table>
 
 ## Getting Started
 
@@ -74,6 +94,8 @@ Copy the example:
 ```
 
 #### Defaults
+
+These environment variables do not necessarily need to be overwritten and can be (if fine with defaults) left out.
 
 ```dotenv
 +{{{ read "examples/defaults.env" }}}
@@ -140,12 +162,25 @@ Found a bug or have an idea for improving Mailbaux?
 
 Feel free to open an issue or submit a pull request.
 
-Please be respectful and patient when contributing. Mailbaux is maintained by volunteers.
+Please be respectful and patient when contributing.
 
 ## Supporting
 
-If you find Mailbaux useful, consider giving the repository a ⭐ to help others discover it.
+Found this project helpful? Consider leaving a ⭐️!
+
+:)
+
+## Help
+
+Do you have a question or need help setting up Mailbaux?
+Join our [Matrix Server](https://matrix.to/#/#codeshelldev.sso.mailbaux:matrix.org)!
 
 ## License
 
 This Project is licensed under the [MIT License](./LICENSE).
+
+## Legal
+
+Logo designed by @CodeShellDev, All Rights Reserved.
+
+This project is not affiliated with mailcow nor authentik.
