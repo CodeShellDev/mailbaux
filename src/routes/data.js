@@ -26,7 +26,7 @@ function IsValideEmail(email) {
 function IsEmailAllowed(email) {
 	const [, domain] = email.split("@")
 
-	return micromatch.isMatch(domain, config.ALLOWED_EMAIL_DOMAINS)
+	return micromatch.isMatch(domain, config.VALID_EMAIL_DOMAINS)
 }
 
 function ValidateEmail(email) {
@@ -44,7 +44,7 @@ function ValidateEmail(email) {
 function EmailAllowed(email) {
 	const [, domain] = email.split("@")
 
-	if (!micromatch.isMatch(domain, config.ALLOWED_EMAIL_DOMAINS)) {
+	if (!micromatch.isMatch(domain, config.VALID_EMAIL_DOMAINS)) {
 		throw new HttpError(400, "Email domain not allowed")
 	}
 }

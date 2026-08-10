@@ -61,7 +61,7 @@ define("APP_CLIENT_ID", { required: true })
 define("APP_CLIENT_SECRET", { required: true })
 define("APP_SCOPE", { default: "openid profile email" })
 
-define("ALLOWED_EMAIL_DOMAINS", { type: "array", default: ["*"] })
+define("VALID_EMAIL_DOMAINS", { type: "array", default: ["*"] })
 
 // Mail
 
