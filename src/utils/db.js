@@ -12,21 +12,21 @@ export async function Init() {
 
 	await mongoClient.connect()
 
-	_db("Connected to MongoDB")
+	logger.debug("Connected to MongoDB")
 
 	mongoSession = mongoClient.startSession()
 
-	_db("Started MongoDB Session")
+	logger.debug("Started MongoDB Session")
 
 	redisClient = createClient({ url: config.REDIS_URI })
 
 	await redisClient.connect()
 
-	_db("Connected to Redis")
+	logger.debug("Connected to Redis")
 }
 
 export async function Close() {
-	_db("Closing MongoDB Connection")
+	logger.debug("Closing MongoDB Connection")
 
 	await mongoSession.endSession()
 	await mongoClient.close()
@@ -63,7 +63,7 @@ export async function DeleteUserByID(id) {
 
 	const result = await collection.deleteOne({ id: id })
 
-	_db("Deleted a User")
+	logger.warn("Deleted a User")
 
 	return result
 }
