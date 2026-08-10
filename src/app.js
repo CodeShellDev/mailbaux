@@ -1,28 +1,28 @@
-const express = require("express")
-const session = require("express-session")
-const passport = require("passport")
-const { RedisStore } = require("connect-redis")
-const { HttpError } = require("./types/errors")
+import express, { static as staticServe, urlencoded, json } from "express"
+import session from "express-session"
+import passport from "passport"
+import { RedisStore } from "connect-redis"
+import { HttpError } from "#types/errors"
 
-const { GetRedis } = require("./utils/db")
+import { GetRedis } from "#utils/db"
 
-const logger = require("./utils/logger")
-const config = require("./utils/config")
+import logger from "#utils/logger"
+import config from "#utils/config"
 
-const { router: rootRouter } = require("./router")
+import { router as rootRouter } from "#router"
 
-const routes = require("./routes/routes")
-const dataRoutes = require("./routes/data")
-const oauthMailRoutes = require("./routes/oauth-mail")
-const oauthApplicationRoutes = require("./routes/oauth-application")
+import routes from "#routes"
+import dataRoutes from "#routes/data"
+import oauthMailRoutes from "#routes/oauth-mail"
+import oauthApplicationRoutes from "#routes/oauth-application"
 
 function CreateApp() {
 	const app = express()
 
-	app.use(config.PREFIX, express.static("public"))
+	app.use(config.PREFIX, staticServe("public"))
 
-	app.use(express.urlencoded({ extended: true }))
-	app.use(express.json())
+	app.use(urlencoded({ extended: true }))
+	app.use(json())
 
 	app.set("view engine", "ejs")
 
@@ -48,7 +48,7 @@ function CreateApp() {
 	app.use(passport.session())
 
 	app.use((req, res, next) => {
-		logger.log(`New ${req.method} Request from ${req.ip} [${req.path}]`)
+		logger.info(`New ${req.method} Request from ${req.ip} [${req.path}]`)
 		next()
 	})
 
@@ -87,7 +87,7 @@ function CreateApp() {
 			return res.status(err.status).json({ error: err.message })
 		}
 
-		logger.err(err)
+		logger.error("", err)
 
 		res.status(500).json({ error: "Internal server error" })
 	})
@@ -95,4 +95,4 @@ function CreateApp() {
 	return app
 }
 
-module.exports = CreateApp
+export default CreateApp

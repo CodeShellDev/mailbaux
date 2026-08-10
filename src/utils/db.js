@@ -1,44 +1,44 @@
-const logger = require("./logger")
-const config = require("./config")
+import logger from "#utils/logger"
+import config from "#utils/config"
 
-const { MongoClient } = require("mongodb")
-const redis = require("redis")
+import { MongoClient } from "mongodb"
+import { createClient } from "redis"
 
 let mongoClient, mongoSession
 let redisClient
 
-async function Init() {
+export async function Init() {
 	mongoClient = new MongoClient(config.DB_URI)
 
 	await mongoClient.connect()
 
-	logger.db("Connected to MongoDB")
+	_db("Connected to MongoDB")
 
 	mongoSession = mongoClient.startSession()
 
-	logger.db("Started MongoDB Session")
+	_db("Started MongoDB Session")
 
-	redisClient = redis.createClient({ url: config.REDIS_URI })
+	redisClient = createClient({ url: config.REDIS_URI })
 
 	await redisClient.connect()
 
-	logger.db("Connected to Redis")
+	_db("Connected to Redis")
 }
 
-async function Close() {
-	logger.db("Closing MongoDB Connection")
+export async function Close() {
+	_db("Closing MongoDB Connection")
 
 	await mongoSession.endSession()
 	await mongoClient.close()
 }
 
-function Connect() {
+export function Connect() {
 	return mongoClient.db(config.DB_NAME)
 }
 
 // Mongo
 
-async function InsertUser(user) {
+export async function InsertUser(user) {
 	const db = await Connect()
 
 	const collection = db.collection("users")
@@ -48,7 +48,7 @@ async function InsertUser(user) {
 	return result
 }
 
-async function GetUserByID(id) {
+export async function GetUserByID(id) {
 	const db = await Connect()
 
 	const collection = db.collection("users")
@@ -56,19 +56,19 @@ async function GetUserByID(id) {
 	return await collection.findOne({ id: id })
 }
 
-async function DeleteUserByID(id) {
+export async function DeleteUserByID(id) {
 	const db = await Connect()
 
 	const collection = db.collection("users")
 
 	const result = await collection.deleteOne({ id: id })
 
-	logger.db("Deleted a User")
+	_db("Deleted a User")
 
 	return result
 }
 
-async function FindBy(query) {
+export async function FindBy(query) {
 	const db = await Connect()
 
 	const collection = db.collection("users")
@@ -78,7 +78,7 @@ async function FindBy(query) {
 	return result
 }
 
-async function AddToArray(query, update) {
+export async function AddToArray(query, update) {
 	const db = await Connect()
 
 	const collection = db.collection("users")
@@ -92,7 +92,7 @@ async function AddToArray(query, update) {
 	return result
 }
 
-async function DeleteFromArrayBy(query, update) {
+export async function DeleteFromArrayBy(query, update) {
 	const db = await Connect()
 
 	const collection = db.collection("users")
@@ -102,7 +102,7 @@ async function DeleteFromArrayBy(query, update) {
 	return result
 }
 
-async function UpdateBy(query, update) {
+export async function UpdateBy(query, update) {
 	const db = await Connect()
 
 	const collection = db.collection("users")
@@ -118,7 +118,7 @@ async function UpdateBy(query, update) {
 
 // REDIS
 
-async function GetFromCache(key) {
+export async function GetFromCache(key) {
 	const value = await redisClient.get(key)
 
 	if (value === null) {
@@ -132,7 +132,7 @@ async function GetFromCache(key) {
 	}
 }
 
-async function WriteToCache(key, value, ttl = 3600) {
+export async function WriteToCache(key, value, ttl = 3600) {
 	if (typeof value !== "string") {
 		value = JSON.stringify(value)
 	}
@@ -141,33 +141,14 @@ async function WriteToCache(key, value, ttl = 3600) {
 	await redisClient.expire(key, ttl)
 }
 
-async function DeleteFromCache(key) {
+export async function DeleteFromCache(key) {
 	await redisClient.del(key)
 }
 
-function GetMongoDB() {
+export function GetMongoDB() {
 	return mongoClient
 }
 
-function GetRedis() {
+export function GetRedis() {
 	return redisClient
 }
-
-exports.GetMongoDB = GetMongoDB
-
-exports.GetRedis = GetRedis
-
-exports.DeleteUserByID = DeleteUserByID
-exports.GetUserByID = GetUserByID
-exports.InsertUser = InsertUser
-exports.Init = Init
-exports.Close = Close
-
-exports.AddToArray = AddToArray
-exports.FindBy = FindBy
-exports.UpdateBy = UpdateBy
-exports.DeleteFromArrayBy = DeleteFromArrayBy
-
-exports.GetFromCache = GetFromCache
-exports.WriteToCache = WriteToCache
-exports.DeleteFromCache = DeleteFromCache

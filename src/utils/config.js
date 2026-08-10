@@ -1,7 +1,95 @@
-const logger = require("./logger")
+import logger from "#utils/logger"
 
+/**
+ * @typedef {Object} Config
+ *
+ * @property {number} LOG_LEVEL
+ * @property {string} HOST
+ * @property {string} PREFIX
+ * @property {string} SESSION_SECRET
+ * @property {string} JWT_KEY_PATH
+ *
+ * @property {string} APP_ISSUER
+ * @property {string} APP_AUTHORIZATION_ENDPOINT
+ * @property {string} APP_TOKEN_ENDPOINT
+ * @property {string} APP_USERINFO_ENDPOINT
+ * @property {string} APP_REDIRECT_PATH
+ * @property {string} APP_CLIENT_ID
+ * @property {string} APP_CLIENT_SECRET
+ * @property {string} APP_SCOPE
+ *
+ * @property {string[]} VALID_EMAIL_DOMAINS
+ * @property {boolean} ALLOW_USER_MAILBOX_CREATION
+ *
+ * @property {string} MAIL_ISSUER
+ * @property {string} MAIL_AUTHORIZATION_ENDPOINT
+ * @property {string} MAIL_TOKEN_ENDPOINT
+ * @property {string} MAIL_USERINFO_ENDPOINT
+ * @property {string[]} MAIL_REDIRECT_URIS
+ * @property {string[]} MAIL_CALLBACK_URIS
+ * @property {string} MAIL_CLIENT_ID
+ * @property {string} MAIL_CLIENT_SECRET
+ *
+ * @property {string} DB_HOST
+ * @property {string} DB_NAME
+ * @property {string} DB_USER
+ * @property {string} DB_PASSWORD
+ * @property {string} DB_URI
+ *
+ * @property {string} REDIS_HOST
+ * @property {string} REDIS_PASSWORD
+ * @property {string} REDIS_URI
+ */
+
+/** @type {Config} */
 const config = {}
 
+/**
+ * @typedef {Object} DefineOptions
+ * @property {"string"|"number"|"array"|"bool"} [type]
+ * @property {boolean} [required]
+ */
+
+/**
+ * @overload
+ * @param {string} name
+ * @param {DefineOptions & { type: "string", default?: string | (() => string) }} options
+ * @returns {string}
+ */
+
+/**
+ * @overload
+ * @param {string} name
+ * @param {DefineOptions & { type: "number", default?: number | (() => number) }} options
+ * @returns {number}
+ */
+
+/**
+ * @overload
+ * @param {string} name
+ * @param {DefineOptions & { type: "array", default?: string[] | (() => string[]) }} options
+ * @returns {string[]}
+ */
+
+/**
+ * @overload
+ * @param {string} name
+ * @param {DefineOptions & { type: "bool", default?: boolean | (() => boolean) }} options
+ * @returns {boolean}
+ */
+
+/**
+ * @overload
+ * @param {string} name
+ * @param {DefineOptions & { type?: undefined, default?: string | (() => string) }} options
+ * @returns {string}
+ */
+
+/**
+ * @param {string} name
+ * @param {DefineOptions & { default?: unknown }} [options={}]
+ * @returns {string|number|string[]|boolean|undefined}
+ */
 function define(
 	name,
 	{ type = "string", default: def, required = false } = {},
@@ -13,14 +101,14 @@ function define(
 		if (def !== undefined) {
 			value = typeof def === "function" ? def() : def
 		} else if (required) {
-			logger.env(`${name} is required but not set`)
+			logger.error(`${name} is required but not set`)
 			process.exit(1)
 		}
 	} else if (type === "number") {
 		value = Number(raw)
 
 		if (Number.isNaN(value)) {
-			logger.env(`${name} must be a number, got "${raw}"`)
+			env(`${name} must be a number, got "${raw}"`)
 			process.exit(1)
 		}
 	} else if (type === "array") {
@@ -33,7 +121,7 @@ function define(
 	}
 
 	if (value === undefined) {
-		logger.env(`${name} is not set`)
+		logger.warn(`${name} is not set`)
 	} else {
 		logger.debug(`${name} = ${value}`)
 	}
@@ -42,7 +130,7 @@ function define(
 	return value
 }
 
-define("LOG_LEVEL", { type: "number", default: 1 })
+define("LOG_LEVEL", { type: "string", default: "info" })
 
 const HOST = define("HOST", { required: true })
 define("PREFIX", { default: "/" })
@@ -62,6 +150,8 @@ define("APP_CLIENT_SECRET", { required: true })
 define("APP_SCOPE", { default: "openid profile email" })
 
 define("VALID_EMAIL_DOMAINS", { type: "array", default: ["*"] })
+
+define("ALLOW_USER_MAILBOX_CREATION", { type: "bool", default: true })
 
 // Mail
 
@@ -95,4 +185,4 @@ define("REDIS_PASSWORD", { required: true })
 
 config.REDIS_URI = `redis://default:${encodeURIComponent(config.REDIS_PASSWORD)}@${config.REDIS_HOST}`
 
-module.exports = config
+export default config

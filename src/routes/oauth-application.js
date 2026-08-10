@@ -1,10 +1,12 @@
-const router = require("express").Router()
+import { Router } from "express"
 
-const config = require("../utils/config")
-const logger = require("../utils/logger")
+import config from "#utils/config"
+import logger from "#utils/logger"
 
-const passport = require("passport")
-const OpenIDConnectStrategy = require("passport-openidconnect").Strategy
+import passport from "passport"
+import { Strategy as OpenIDConnectStrategy } from "passport-openidconnect"
+
+const router = Router()
 
 passport.use(
 	"oidc",
@@ -24,7 +26,7 @@ passport.use(
 				return done(new Error("OIDC profile missing id"))
 			}
 
-			logger.debug("Profile: ", profile)
+			logger.dev("Profile: ", profile)
 
 			return done(null, profile)
 		},
@@ -53,4 +55,4 @@ router.get(
 	},
 )
 
-module.exports = router
+export default router

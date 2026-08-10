@@ -1,59 +1,56 @@
-const util = require("util")
+import pino from "pino"
 
-const LOG_LEVEL = parseInt(process.env.LOG_LEVEL) || 1
+const _logger = pino({
+	level: process.env.LOG_LEVEL ?? "info",
+	customLevels: {
+		dev: 15,
+	},
+	transport: {
+		target: "pino-pretty",
+		options: {
+			colorize: true,
+			translateTime: "dd.mm.yy HH:MM:ss",
+			ignore: "pid,hostname",
+		},
+	},
+})
 
-const LEVEL = {
-	ENV: { value: "ENV_", id: 1 },
-	DB: { value: "DB__", id: 1 },
-	INFO: { value: "INFO", id: 1 },
-	WARN: { value: "WARN", id: 1 },
-	EROR: { value: "EROR", id: 1 },
-	DEBG: { value: "DEBG", id: 10 },
-}
-
-function _log(level, ...args) {
-	if (LOG_LEVEL < level.id) {
-		return
+function normalize(obj) {
+	if (obj instanceof Error) {
+		return { err: obj }
 	}
 
-	const formattedArgs = args.map((arg) => {
-		if (typeof arg === "object") {
-			return util.inspect(arg, { showHidden: false, depth: null, colors: true })
-		}
-		return arg
-	})
-	console.log(`[${level.value}]`, ...formattedArgs)
+	return obj
 }
 
-function log(...args) {
-	_log(LEVEL.INFO, ...args)
+const logger = {
+	trace(msg, obj) {
+		_logger.trace(normalize(obj), msg)
+	},
+
+	dev(msg, obj) {
+		_logger.dev(normalize(obj), msg)
+	},
+
+	debug(msg, obj) {
+		_logger.debug(normalize(obj), msg)
+	},
+
+	info(msg, obj) {
+		_logger.info(normalize(obj), msg)
+	},
+
+	warn(msg, obj) {
+		_logger.warn(normalize(obj), msg)
+	},
+
+	error(msg, obj) {
+		_logger.error(normalize(obj), msg)
+	},
+
+	fatal(msg, obj) {
+		_logger.fatal(normalize(obj), msg)
+	},
 }
 
-function warn(...args) {
-	_log(LEVEL.WARN, ...args)
-}
-
-function err(...args) {
-	_log(LEVEL.EROR, ...args)
-}
-
-function env(...args) {
-	_log(LEVEL.ENV, ...args)
-}
-
-function db(...args) {
-	_log(LEVEL.DB, ...args)
-}
-
-function debug(...args) {
-	_log(LEVEL.DEBG, ...args)
-}
-
-exports.log = log
-exports.warn = warn
-exports.err = err
-exports.env = env
-exports.db = db
-exports.debug = debug
-
-exports.LEVEL = LEVEL
+export default logger
