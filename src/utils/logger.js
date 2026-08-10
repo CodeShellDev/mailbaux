@@ -13,15 +13,12 @@ const _logger = pino({
 			ignore: "pid,hostname",
 		},
 	},
-	mixin() {
-		return { caller: getCaller() }
-	},
 })
 
-function getCaller() {
+function getCaller(skips) {
 	const stack = new Error().stack?.split("\n") ?? []
 
-	return parseCaller(stack[6])
+	return parseCaller(stack[4 + skips])
 }
 
 function parseCaller(
@@ -48,8 +45,12 @@ function parseCaller(
 
 	if (match) {
 		const [, file, line] = match
+		let res = ``
 
-		return `${cleanPath(file)}`
+		if (showFile) res += cleanPath(file)
+		if (showLine) res += `:${line}`
+
+		return res
 	}
 
 	return frame.trim().replace(/^at\s+/, "")
@@ -67,33 +68,45 @@ function normalize(obj) {
 	return obj
 }
 
+function log(level, msg, obj, options = {}) {
+	const caller = getCaller(options.skipCaller ?? 0)
+
+	if (obj !== undefined && typeof obj === "object" && obj !== null) {
+		obj.caller = caller
+
+		_logger[level](normalize(obj), msg)
+	} else {
+		_logger[level]({ caller }, msg)
+	}
+}
+
 const logger = {
-	trace(msg, obj) {
-		_logger.trace(normalize(obj), msg)
+	trace(msg, obj, options = {}) {
+		log("trace", msg, obj, options)
 	},
 
-	dev(msg, obj) {
-		_logger.dev(normalize(obj), msg)
+	dev(msg, obj, options = {}) {
+		log("dev", msg, obj, options)
 	},
 
-	debug(msg, obj) {
-		_logger.debug(normalize(obj), msg)
+	debug(msg, obj, options = {}) {
+		log("debug", msg, obj, options)
 	},
 
-	info(msg, obj) {
-		_logger.info(normalize(obj), msg)
+	info(msg, obj, options = {}) {
+		log("info", msg, obj, options)
 	},
 
-	warn(msg, obj) {
-		_logger.warn(normalize(obj), msg)
+	warn(msg, obj, options = {}) {
+		log("warn", msg, obj, options)
 	},
 
-	error(msg, obj) {
-		_logger.error(normalize(obj), msg)
+	error(msg, obj, options = {}) {
+		log("error", msg, obj, options)
 	},
 
-	fatal(msg, obj) {
-		_logger.fatal(normalize(obj), msg)
+	fatal(msg, obj, options = {}) {
+		log("fatal", msg, obj, options)
 	},
 }
 

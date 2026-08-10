@@ -101,14 +101,18 @@ function define(
 		if (def !== undefined) {
 			value = typeof def === "function" ? def() : def
 		} else if (required) {
-			logger.error(`${name} is required but not set`)
+			logger.error(`${name} is required but not set`, null, {
+				skipCaller: true,
+			})
 			process.exit(1)
 		}
 	} else if (type === "number") {
 		value = Number(raw)
 
 		if (Number.isNaN(value)) {
-			env(`${name} must be a number, got "${raw}"`)
+			logger.error(`${name} must be a number, got "${raw}"`, null, {
+				skipCaller: true,
+			})
 			process.exit(1)
 		}
 	} else if (type === "array") {
@@ -121,9 +125,9 @@ function define(
 	}
 
 	if (value === undefined) {
-		logger.warn(`${name} is not set`)
+		logger.warn(`${name} is not set`, null, { skipCaller: true })
 	} else {
-		logger.debug(`${name} = ${value}`)
+		logger.debug(`${name} = ${value}`, null, { skipCaller: true })
 	}
 
 	config[name] = value
