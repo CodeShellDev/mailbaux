@@ -7,22 +7,22 @@ on:
     paths-ignore:
       - .**
       - examples/**
-      
+
 jobs:
   update:
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: read
       packages: write
-      
+
     steps:
       - uses: actions/checkout@v4
-      - uses: codeshelldev/gh-actions/docker-build-push@main
+      - uses: codeshelldev/gh-actions/docker-build-push@v1
         with:
           registry: ghcr.io
           token: ${{ secrets.GITHUB_TOKEN }}
-          use-qemu: 'true'
+          use-qemu: "true"
           flavor: |
             latest=false
           tags: |
