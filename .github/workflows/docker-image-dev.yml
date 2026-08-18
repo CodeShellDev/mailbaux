@@ -7,16 +7,24 @@ on:
     paths-ignore:
       - .**
       - examples/**
-
+      
 jobs:
   update:
-    uses: codeshelldev/gh-actions/.github/workflows/docker-image.yml@main
-    with:
-      registry: ghcr.io
-      flavor: |
-        latest=false
-      tags: |
-        type=sha
-        type=raw,value=latest-dev
-    secrets:
-      GH_PCKG_TOKEN: ${{ secrets.GH_PCKG_TOKEN }}
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+      - uses: actions/checkout@v4
+      - uses: codeshelldev/gh-actions/docker-build-push@main
+        with:
+          registry: ghcr.io
+          token: ${{ secrets.GITHUB_TOKEN }}
+          use-qemu: 'true'
+          flavor: |
+            latest=false
+          tags: |
+            type=sha
+            type=raw,value=latest-dev
