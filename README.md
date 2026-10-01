@@ -329,7 +329,7 @@ Found this project helpful? Consider leaving a ⭐️!
 ## Help
 
 Do you have a question or need help setting up Mailbaux?
-Join our [Matrix Server](https://matrix.to/#/#codeshelldev.sso.mailbaux:matrix.org)!
+Join our [Matrix Server](https://matrix.to/#/#codeshelldev.oss.mailbaux:matrix.org)!
 
 ## License
 
